@@ -1,7 +1,6 @@
 /** @jsx jsx */
-import { Editor } from 'slate';
-import { jsx } from '../../../../support/jsx';
-import { YjsEditor, yTextToSlateElement } from '../../src';
+import { jsx } from '../../../../../support/jsx';
+import { YjsEditor, yTextToSlateElement } from '../../../src';
 
 export const input = (
   <editor>
@@ -19,9 +18,6 @@ export const expected = {
   ],
 };
 
-export function run(editor: Editor) {
-  const isYJSEditor = YjsEditor.isYjsEditor(editor);
-  if (!isYJSEditor) return;
-
+export function run(editor: YjsEditor) {
   return yTextToSlateElement(editor.sharedRoot);
 }
