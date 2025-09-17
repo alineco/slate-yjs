@@ -5,6 +5,7 @@ import { jsx } from '../../../../../support/jsx';
 export const input = (
   <editor>
     <unstyled>
+      <text>one</text>
       <text bold>
         hello
         <cursor />
@@ -16,7 +17,10 @@ export const input = (
 export const expected = (
   <editor>
     <unstyled>
+      <text>one</text>
       <text bold>hello</text>
+    </unstyled>
+    <unstyled>
       <text bold italic>
         <cursor />
       </text>
@@ -25,10 +29,19 @@ export const expected = (
 );
 
 export function run(editor: Editor) {
-  editor.apply({
-    type: 'split_node',
-    path: [0, 0],
-    position: 5,
-    properties: { bold: true, italic: true },
+  Editor.withoutNormalizing(editor, () => {
+    editor.apply({
+      type: 'split_node',
+      path: [0, 1],
+      position: 5,
+      properties: { bold: true, italic: true },
+    });
+
+    editor.apply({
+      type: 'split_node',
+      path: [0],
+      position: 2,
+      properties: { type: 'unstyled' },
+    });
   });
 }

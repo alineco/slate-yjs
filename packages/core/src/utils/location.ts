@@ -8,7 +8,11 @@ export function getSlateNodeYLength(node: Node | undefined): number {
     return 0;
   }
 
-  return Text.isText(node) ? node.text.length : 1;
+  /**
+   * Empty text nodes are represented in Yjs using a single character, so return
+   * 1 if `node.text.length` is zero.
+   */
+  return Text.isText(node) ? node.text.length || 1 : 1;
 }
 
 export function slatePathOffsetToYOffset(element: Element, pathOffset: number) {
@@ -75,7 +79,7 @@ export function yOffsetToSlateOffsets(
   let lastNonEmptyPathOffset = 0;
   for (let pathOffset = 0; pathOffset < parent.children.length; pathOffset++) {
     const child = parent.children[pathOffset];
-    const nodeLength = Text.isText(child) ? child.text.length : 1;
+    const nodeLength = getSlateNodeYLength(child);
 
     if (nodeLength > 0) {
       lastNonEmptyPathOffset = pathOffset;

@@ -1,8 +1,13 @@
 import { Element, Node, Text } from 'slate';
 import * as Y from 'yjs';
 import { DeltaInsert, InsertDelta } from '../model/types';
-import { yTextToInsertDelta } from './delta';
+import { isInsertDeltaEmptyText, yTextToInsertDelta } from './delta';
 import { getProperties } from './slate';
+import {
+  emptyTextAttribute,
+  emptyTextChar,
+  omitEmptyTextAttribute,
+} from './yjs';
 
 export function yTextToSlateElement(yText: Y.XmlText): Element {
   const delta = yTextToInsertDelta(yText);
@@ -17,6 +22,10 @@ export function yTextToSlateElement(yText: Y.XmlText): Element {
 
 export function deltaInsertToSlateNode(insert: DeltaInsert): Node {
   if (typeof insert.insert === 'string') {
+    if (isInsertDeltaEmptyText(insert)) {
+      return { ...omitEmptyTextAttribute(insert.attributes), text: '' };
+    }
+
     return { ...insert.attributes, text: insert.insert };
   }
 
@@ -26,7 +35,17 @@ export function deltaInsertToSlateNode(insert: DeltaInsert): Node {
 export function slateNodesToInsertDelta(nodes: Node[]): InsertDelta {
   return nodes.map((node) => {
     if (Text.isText(node)) {
-      return { insert: node.text, attributes: getProperties(node) };
+      const { text } = node;
+      const attributes = getProperties(node);
+
+      if (text.length === 0) {
+        return {
+          insert: emptyTextChar,
+          attributes: { ...attributes, [emptyTextAttribute]: true },
+        };
+      }
+
+      return { insert: text, attributes };
     }
 
     // eslint-disable-next-line @typescript-eslint/no-use-before-define

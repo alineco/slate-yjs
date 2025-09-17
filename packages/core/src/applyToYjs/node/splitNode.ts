@@ -7,6 +7,7 @@ import {
   getStoredPositionsInDeltaAbsolute,
   restoreStoredPositionsWithDeltaAbsolute,
 } from '../../utils/position';
+import { emptyTextAttribute, emptyTextChar } from '../../utils/yjs';
 
 export function splitNode(
   sharedRoot: Y.XmlText,
@@ -24,20 +25,44 @@ export function splitNode(
       throw new Error('Mismatch node type between y target and slate node');
     }
 
+    const oldProperties: Record<string, unknown> = {};
     const unset: Record<string, null> = {};
+
     target.targetDelta.forEach((element) => {
       if (element.attributes) {
-        Object.keys(element.attributes).forEach((key) => {
-          unset[key] = null;
+        Object.entries(element.attributes).forEach(([key, value]) => {
+          if (key !== emptyTextAttribute) {
+            oldProperties[key] = value;
+            unset[key] = null;
+          }
         });
       }
     });
 
-    return target.yParent.format(
-      target.textRange.start,
-      target.textRange.end - target.textRange.start,
-      { ...unset, ...op.properties }
-    );
+    let ySplitOffset = target.textRange.start + op.position;
+    let length = target.textRange.end - ySplitOffset;
+
+    if (op.position === 0) {
+      target.yParent.insert(ySplitOffset, emptyTextChar, {
+        ...oldProperties,
+        [emptyTextAttribute]: true,
+      });
+      ySplitOffset++;
+    }
+
+    if (length === 0) {
+      target.yParent.insert(ySplitOffset, emptyTextChar, {
+        [emptyTextAttribute]: true,
+      });
+      length++;
+    }
+
+    target.yParent.format(ySplitOffset, length, {
+      ...unset,
+      ...op.properties,
+    });
+
+    return;
   }
 
   if (Text.isText(target.slateTarget)) {

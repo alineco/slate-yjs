@@ -1,6 +1,7 @@
 import * as Y from 'yjs';
 import { DeltaInsert, InsertDelta } from '../model/types';
 import { deepEquals } from './object';
+import { emptyTextAttribute } from './yjs';
 
 export function normalizeInsertDelta(delta: InsertDelta): InsertDelta {
   const normalized: InsertDelta = [];
@@ -94,4 +95,8 @@ export function sliceInsertDelta(
   }
 
   return sliced;
+}
+
+export function isInsertDeltaEmptyText({ attributes }: DeltaInsert) {
+  return attributes && emptyTextAttribute in attributes;
 }

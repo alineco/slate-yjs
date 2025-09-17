@@ -9,6 +9,7 @@ import {
 } from '../utils/location';
 import { deepEquals, omitNullEntries, pick } from '../utils/object';
 import { getProperties } from '../utils/slate';
+import { emptyTextChar } from '../utils/yjs';
 
 function applyDelta(node: Element, slatePath: Path, delta: Delta): Operation[] {
   const ops: Operation[] = [];
