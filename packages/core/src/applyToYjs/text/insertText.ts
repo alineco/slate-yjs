@@ -3,6 +3,7 @@ import type * as Y from 'yjs';
 import { getYTarget } from '../../utils/location';
 import { getProperties } from '../../utils/slate';
 import { emptyTextAttribute } from '../../utils/yjs';
+import { DeltaInsert } from '../../model/types';
 
 export function insertText(
   sharedRoot: Y.XmlText,
@@ -20,8 +21,10 @@ export function insertText(
     throw new Error('Cannot insert text into non-text node');
   }
 
-  if (targetDelta[0].attributes?.[emptyTextAttribute]) {
-    target.delete(textRange.start, 1);
+  const targetDeltaInsert = targetDelta[0] as DeltaInsert | undefined;
+
+  if (targetDeltaInsert?.attributes?.[emptyTextAttribute]) {
+    target.delete(textRange.start, targetDeltaInsert.insert.length);
   }
 
   target.insert(

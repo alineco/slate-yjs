@@ -5,7 +5,7 @@ import { jsx } from '../../../../../support/jsx';
 export const input = (
   <editor>
     <unstyled>
-      <text italic>hello</text>
+      <text bold italic />
     </unstyled>
   </editor>
 );
@@ -13,14 +13,11 @@ export const input = (
 export const expected = (
   <editor>
     <unstyled>
-      <text bold>hello</text>
+      <text italic underline />
     </unstyled>
   </editor>
 );
 
 export function run(editor: Editor) {
-  Editor.withoutNormalizing(editor, () => {
-    Transforms.insertNodes(editor, <text bold />, { at: [0, 0] });
-    Transforms.mergeNodes(editor, { at: [0, 1] });
-  });
+  Transforms.setNodes(editor, { bold: null, underline: true }, { at: [0, 0] });
 }

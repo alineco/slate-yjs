@@ -9,7 +9,7 @@ import {
 } from '../utils/location';
 import { deepEquals, omitNullEntries, pick } from '../utils/object';
 import { getProperties } from '../utils/slate';
-import { emptyTextChar } from '../utils/yjs';
+import { omitEmptyTextAttribute } from '../utils/yjs';
 
 function applyDelta(node: Element, slatePath: Path, delta: Delta): Operation[] {
   const ops: Operation[] = [];
@@ -33,10 +33,17 @@ function applyDelta(node: Element, slatePath: Path, delta: Delta): Operation[] {
         node,
         yOffset - change.retain
       );
+
       const [endPathOffset, endTextOffset] = yOffsetToSlateOffsets(
         node,
         yOffset,
         { assoc: -1 }
+      );
+
+      const newProperties = omitEmptyTextAttribute(change.attributes);
+      const properties = pick(
+        node,
+        ...(Object.keys(newProperties) as Array<keyof Element>)
       );
 
       for (
@@ -54,18 +61,14 @@ function applyDelta(node: Element, slatePath: Path, delta: Delta): Operation[] {
           continue;
         }
 
-        const newProperties = change.attributes;
-        const properties = pick(
-          node,
-          ...(Object.keys(change.attributes) as Array<keyof Element>)
-        );
+        const childLength = getSlateNodeYLength(child);
 
         if (pathOffset === startPathOffset || pathOffset === endPathOffset) {
           const start = pathOffset === startPathOffset ? startTextOffset : 0;
           const end =
-            pathOffset === endPathOffset ? endTextOffset : child.text.length;
+            pathOffset === endPathOffset ? endTextOffset : childLength;
 
-          if (end !== child.text.length) {
+          if (end !== childLength) {
             ops.push({
               type: 'split_node',
               path: childPath,
@@ -126,9 +129,10 @@ function applyDelta(node: Element, slatePath: Path, delta: Delta): Operation[] {
           Text.isText(child) &&
           (pathOffset === startPathOffset || pathOffset === endPathOffset)
         ) {
+          const childLength = getSlateNodeYLength(child);
           const start = pathOffset === startPathOffset ? startTextOffset : 0;
           const end =
-            pathOffset === endPathOffset ? endTextOffset : child.text.length;
+            pathOffset === endPathOffset ? endTextOffset : childLength;
 
           ops.push({
             type: 'remove_text',

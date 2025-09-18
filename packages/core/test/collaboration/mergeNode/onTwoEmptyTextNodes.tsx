@@ -6,7 +6,6 @@ export const input = (
   <editor>
     <unstyled>
       <text bold />
-      <text italic />
     </unstyled>
   </editor>
 );
@@ -14,11 +13,14 @@ export const input = (
 export const expected = (
   <editor>
     <unstyled>
-      <text bold />
+      <text italic />
     </unstyled>
   </editor>
 );
 
 export function run(editor: Editor) {
-  Transforms.mergeNodes(editor, { at: [0, 1] });
+  Editor.withoutNormalizing(editor, () => {
+    Transforms.insertNodes(editor, <text italic />, { at: [0, 0] });
+    Transforms.mergeNodes(editor, { at: [0, 1] });
+  });
 }

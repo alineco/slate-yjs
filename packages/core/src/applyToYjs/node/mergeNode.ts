@@ -1,6 +1,6 @@
 import { MergeNodeOperation, Node, Path, Text } from 'slate';
 import * as Y from 'yjs';
-import { Delta } from '../../model/types';
+import { Delta, DeltaInsert } from '../../model/types';
 import { cloneInsertDeltaDeep } from '../../utils/clone';
 import { yTextToInsertDelta } from '../../utils/delta';
 import { getYTarget } from '../../utils/location';
@@ -9,6 +9,7 @@ import {
   restoreStoredPositionsWithDeltaAbsolute,
 } from '../../utils/position';
 import { getProperties } from '../../utils/slate';
+import { emptyTextAttribute } from '../../utils/yjs';
 
 export function mergeNode(
   sharedRoot: Y.XmlText,
@@ -44,10 +45,20 @@ export function mergeNode(
       return prevSiblingHasProp ? acc : { ...acc, [key]: null };
     }, {});
 
-    return parent.format(textRange.start, textRange.end - textRange.start, {
+    parent.format(textRange.start, textRange.end - textRange.start, {
       ...unsetProps,
       ...prevSiblingProps,
     });
+
+    const prevTargetDeltaInsert = prev.targetDelta[0] as
+      | DeltaInsert
+      | undefined;
+
+    if (prevTargetDeltaInsert?.attributes?.[emptyTextAttribute]) {
+      parent.delete(prev.textRange.start, prevTargetDeltaInsert.insert.length);
+    }
+
+    return;
   }
 
   const deltaApplyYOffset = prev.yTarget.length;
