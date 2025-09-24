@@ -5,6 +5,7 @@ import * as Y from 'yjs';
 import { fixtures } from '../../../support/fixtures';
 import { yTextToSlateElement } from '../src';
 import { withTestingElements } from './withTestingElements';
+import { inspectYText } from './inspectYText';
 
 export type FixtureModule = {
   module: {
@@ -46,7 +47,7 @@ async function runCollaborationTest({ module }: FixtureModule) {
   editor.onChange();
 
   if (yExpected) {
-    expect(editor.sharedRoot.toJSON()).toEqual(yExpected.toJSON());
+    expect(inspectYText(editor.sharedRoot)).toEqual(inspectYText(yExpected));
   } else {
     // Editor state after run should match shared root.
     expect(await normalizedSlateDoc(editor.sharedRoot)).toEqual(
@@ -67,9 +68,9 @@ async function runCollaborationTest({ module }: FixtureModule) {
 
   // Verify remote and editor state are equal
   if (yExpected) {
-    expect(remote.sharedRoot.toJSON()).toEqual(yExpected.toJSON());
+    expect(inspectYText(remote.sharedRoot)).toEqual(inspectYText(yExpected));
     expect(editor.children).toEqual(remote.children);
-    expect(editor.sharedRoot.toJSON()).toEqual(yExpected.toJSON());
+    expect(inspectYText(editor.sharedRoot)).toEqual(inspectYText(yExpected));
   } else {
     expect(await normalizedSlateDoc(remote.sharedRoot)).toEqual(
       remote.children
