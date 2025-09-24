@@ -49,6 +49,37 @@ export function getInsertDeltaLength(delta: InsertDelta): number {
   return delta.reduce((curr, element) => curr + getInsertLength(element), 0);
 }
 
+export function getNextDeltaInsert(
+  delta: InsertDelta,
+  start: number
+): DeltaInsert | null {
+  let currentOffset = 0;
+
+  for (let i = 0; i < delta.length; i++) {
+    const element = delta[i];
+    const elementLength = getInsertLength(element);
+    const { insert } = element;
+
+    if (currentOffset + elementLength <= start) {
+      currentOffset += elementLength;
+      continue;
+    }
+
+    if (typeof insert !== 'string') {
+      return element;
+    }
+
+    const startOffset = Math.max(0, start - currentOffset);
+
+    return {
+      ...element,
+      insert: insert.slice(startOffset),
+    };
+  }
+
+  return null;
+}
+
 export function sliceInsertDelta(
   delta: InsertDelta,
   start: number,

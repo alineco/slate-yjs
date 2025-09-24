@@ -49,6 +49,3 @@ export function run(editor: Editor) {
     });
   });
 }
-
-export const skip =
-  'splitNode accidentally creates an extra new line when the target is a legacy empty text node';

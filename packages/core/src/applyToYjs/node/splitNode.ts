@@ -73,12 +73,25 @@ export function splitNode(
     op.position,
   ]);
 
-  const ySplitOffset = target.slateTarget.children
-    .slice(0, op.position)
-    .reduce((length, child) => length + getSlateNodeYLength(child), 0);
+  const yParentDelta = yTextToInsertDelta(target.yTarget);
+
+  const ySplitOffset = target.slateTarget.children.slice(0, op.position).reduce(
+    (length, child) =>
+      length +
+      getSlateNodeYLength(child, {
+        yParentDelta,
+        yOffset: length,
+      }),
+    0
+  );
 
   const length = target.slateTarget.children.reduce(
-    (current, child) => current + getSlateNodeYLength(child),
+    (current, child) =>
+      current +
+      getSlateNodeYLength(child, {
+        yParentDelta,
+        yOffset: current,
+      }),
     0
   );
 

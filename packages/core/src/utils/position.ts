@@ -50,7 +50,7 @@ export function absolutePositionToSlatePoint(
     );
   }
 
-  const [pathOffset, textOffset] = yOffsetToSlateOffsets(parent, index, {
+  const [pathOffset, textOffset] = yOffsetToSlateOffsets(type, parent, index, {
     assoc,
   });
 
