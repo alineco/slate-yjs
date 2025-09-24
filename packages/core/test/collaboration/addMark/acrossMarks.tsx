@@ -23,8 +23,9 @@ export const expected = (
   <editor>
     <unstyled>
       <text>Hel</text>
-      <anchor />
-      <text italic>l</text>
+      <text italic>
+        <anchor />l
+      </text>
       <text italic bold>
         o
       </text>

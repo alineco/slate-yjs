@@ -23,8 +23,10 @@ export const expected = (
   <editor>
     <unstyled>
       <text>Hel</text>
-      <anchor />
-      <text bold>lo w</text>
+      <text bold>
+        <anchor />
+        lo w
+      </text>
       <focus />
       <text>orld!</text>
     </unstyled>

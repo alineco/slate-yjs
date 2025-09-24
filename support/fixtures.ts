@@ -4,6 +4,8 @@
 import * as fs from 'fs';
 import { basename, extname, resolve } from 'path';
 import { describe, it } from 'vitest';
+import chalk from 'chalk';
+import { FixtureModule } from '../packages/core/test/index.test';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fixtures<P extends any[]>(...args: P) {
@@ -44,12 +46,13 @@ export function fixtures<P extends any[]>(...args: P) {
         const testIt = p.toLowerCase().includes('only') ? it.only : it;
 
         testIt(`${name} `, async () => {
-          const module = await import(p);
+          const module: FixtureModule['module'] = await import(p);
+          const { skip } = module;
+          const skipReason = typeof skip === 'function' ? skip() : skip;
 
-          if (
-            module.skip === true ||
-            (typeof module.skip === 'function' && module.skip())
-          ) {
+          if (skipReason) {
+            // eslint-disable-next-line no-console
+            console.warn(chalk.yellow(`Skipped ${name}: ${skipReason}`));
             return;
           }
 

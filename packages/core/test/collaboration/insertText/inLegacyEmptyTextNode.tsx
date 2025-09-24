@@ -1,20 +1,9 @@
 /** @jsx jsx */
-import { Editor, Transforms } from 'slate';
+import { Editor } from 'slate';
 import { jsx } from '../../../../../support/jsx';
+import { yTextFactory } from '../../yTextFactory';
 
 export const input = (
-  <editor>
-    <unstyled>
-      <text bold>
-        <anchor />
-        hello
-        <focus />
-      </text>
-    </unstyled>
-  </editor>
-);
-
-export const expected = (
   <editor>
     <unstyled>
       <text bold>
@@ -24,6 +13,20 @@ export const expected = (
   </editor>
 );
 
+export const yInput = yTextFactory(
+  <editor>
+    <unstyled />
+  </editor>
+);
+
+export const expected = (
+  <editor>
+    <unstyled>
+      <text>hello</text>
+    </unstyled>
+  </editor>
+);
+
 export function run(editor: Editor) {
-  Transforms.delete(editor);
+  editor.insertText('hello');
 }

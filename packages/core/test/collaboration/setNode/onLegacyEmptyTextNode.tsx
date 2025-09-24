@@ -1,0 +1,32 @@
+/** @jsx jsx */
+import { Editor, Transforms } from 'slate';
+import { jsx } from '../../../../../support/jsx';
+import { yTextFactory } from '../../yTextFactory';
+
+export const input = (
+  <editor>
+    <unstyled>
+      <text bold italic />
+    </unstyled>
+  </editor>
+);
+
+export const yInput = yTextFactory(
+  <editor>
+    <unstyled />
+  </editor>
+);
+
+export const expected = (
+  <editor>
+    <unstyled>
+      <text underline />
+    </unstyled>
+  </editor>
+);
+
+export function run(editor: Editor) {
+  Transforms.setNodes(editor, { bold: null, underline: true }, { at: [0, 0] });
+}
+
+export const skip = 'setNodes is not yet supported on legacy text nodes';

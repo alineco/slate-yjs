@@ -1,0 +1,54 @@
+/** @jsx jsx */
+import { Editor } from 'slate';
+import { jsx } from '../../../../../support/jsx';
+import { yTextFactory } from '../../yTextFactory';
+
+export const input = (
+  <editor>
+    <unstyled>
+      <text bold>
+        <cursor />
+      </text>
+    </unstyled>
+  </editor>
+);
+
+export const yInput = yTextFactory(
+  <editor>
+    <unstyled />
+  </editor>
+);
+
+export const expected = (
+  <editor>
+    <unstyled>
+      <text />
+    </unstyled>
+    <unstyled>
+      <text bold italic>
+        <cursor />
+      </text>
+    </unstyled>
+  </editor>
+);
+
+export function run(editor: Editor) {
+  Editor.withoutNormalizing(editor, () => {
+    editor.apply({
+      type: 'split_node',
+      path: [0, 0],
+      position: 0,
+      properties: { bold: true, italic: true },
+    });
+
+    editor.apply({
+      type: 'split_node',
+      path: [0],
+      position: 1,
+      properties: { type: 'unstyled' },
+    });
+  });
+}
+
+export const skip =
+  'splitNode accidentally creates an extra new line when the target is a legacy empty text node';

@@ -1,6 +1,7 @@
 /** @jsx jsx */
 import { Editor, Transforms } from 'slate';
 import { jsx } from '../../../../../support/jsx';
+import { yTextFactory } from '../../yTextFactory';
 
 export const input = (
   <editor>
@@ -10,10 +11,16 @@ export const input = (
   </editor>
 );
 
+export const yInput = yTextFactory(
+  <editor>
+    <unstyled />
+  </editor>
+);
+
 export const expected = (
   <editor>
     <unstyled>
-      <text bold>hello</text>
+      <text>hello</text>
     </unstyled>
   </editor>
 );
@@ -24,3 +31,6 @@ export function run(editor: Editor) {
     Transforms.mergeNodes(editor, { at: [0, 1] });
   });
 }
+
+export const skip =
+  'mergeNode accidentally fails to merge completely and creates an extra new line when the node before the target is a legacy empty text node';

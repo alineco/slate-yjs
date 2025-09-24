@@ -5,6 +5,9 @@ import { jsx } from '../../../../../support/jsx';
 export const input = (
   <editor>
     <unstyled>
+      <text italic />
+      {/* Prevent normalize from merging empty text nodes */}
+      <link />
       <text bold />
     </unstyled>
   </editor>
@@ -20,7 +23,7 @@ export const expected = (
 
 export function run(editor: Editor) {
   Editor.withoutNormalizing(editor, () => {
-    Transforms.insertNodes(editor, <text italic />, { at: [0, 0] });
+    Transforms.removeNodes(editor, { at: [0, 1] });
     Transforms.mergeNodes(editor, { at: [0, 1] });
   });
 }
