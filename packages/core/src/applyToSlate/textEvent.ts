@@ -129,20 +129,28 @@ function applyDelta(node: Element, slatePath: Path, delta: Delta): Operation[] {
           Text.isText(child) &&
           (pathOffset === startPathOffset || pathOffset === endPathOffset)
         ) {
-          const childLength = getSlateNodeYLength(child);
+          const childLength = getSlateNodeYLength(child); // TODO: Do we want Y or Slate length here?
           const start = pathOffset === startPathOffset ? startTextOffset : 0;
           const end =
             pathOffset === endPathOffset ? endTextOffset : childLength;
+          const length = end - start;
 
-          ops.push({
-            type: 'remove_text',
-            offset: start,
-            text: child.text.slice(start, end),
-            path: childPath,
-          });
+          /**
+           * If all text is removed, remove the entire node since a replacement
+           * text node will be created by the insertion of the empty text
+           * character.
+           */
+          if (length < child.text.length) {
+            ops.push({
+              type: 'remove_text',
+              offset: start,
+              text: child.text.slice(start, end),
+              path: childPath,
+            });
 
-          yOffset -= end - start;
-          continue;
+            yOffset -= length;
+            continue;
+          }
         }
 
         ops.push({
