@@ -1,7 +1,7 @@
 import { MergeNodeOperation, Node, Path, Text } from 'slate';
 import * as Y from 'yjs';
 import { Delta, DeltaInsert } from '../../model/types';
-import { cloneInsertDeltaDeep } from '../../utils/clone';
+import { cloneDeltaDeep } from '../../utils/clone';
 import { yTextToInsertDelta } from '../../utils/delta';
 import { getYTarget } from '../../utils/location';
 import {
@@ -63,7 +63,7 @@ export function mergeNode(
 
   const deltaApplyYOffset = prev.yTarget.length;
   const targetDelta = yTextToInsertDelta(target.yTarget);
-  const clonedDelta = cloneInsertDeltaDeep(targetDelta);
+  const clonedDelta = cloneDeltaDeep(targetDelta);
 
   const storedPositions = getStoredPositionsInDeltaAbsolute(
     sharedRoot,

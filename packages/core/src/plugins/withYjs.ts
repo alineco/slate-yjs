@@ -12,6 +12,7 @@ import {
   slatePointToRelativePosition,
 } from '../utils/position';
 import { assertDocumentAttachment } from '../utils/yjs';
+import { ClonedSharedRoot } from '../utils/ClonedSharedRoot';
 
 type LocalChange = {
   op: Operation;
@@ -166,6 +167,12 @@ export function withYjs<T extends Editor>(
 
   e.sharedRoot = sharedRoot;
 
+  /**
+   * The state of the shared root prior to the current event. Used to correctly
+   * translate Yjs events to Slate operations based on the prior state.
+   */
+  let prevSharedRoot: ClonedSharedRoot | undefined;
+
   e.localOrigin = localOrigin ?? DEFAULT_LOCAL_ORIGIN;
   e.positionStorageOrigin =
     positionStorageOrigin ?? DEFAULT_POSITION_STORAGE_ORIGIN;
@@ -175,7 +182,12 @@ export function withYjs<T extends Editor>(
 
     Editor.withoutNormalizing(e, () => {
       YjsEditor.withOrigin(e, origin, () => {
-        applyYjsEvents(e.sharedRoot, e, events);
+        if (!prevSharedRoot)
+          throw new Error(
+            'Cannot apply remote events before prevSharedRoot is created'
+          );
+
+        applyYjsEvents(sharedRoot, prevSharedRoot, e, events);
       });
     });
   };
@@ -206,6 +218,7 @@ export function withYjs<T extends Editor>(
       throw new Error('already connected');
     }
 
+    prevSharedRoot = new ClonedSharedRoot(e.sharedRoot);
     e.sharedRoot.observeDeep(handleYEvents);
     const content = yTextToSlateElement(e.sharedRoot);
     e.children = content.children;

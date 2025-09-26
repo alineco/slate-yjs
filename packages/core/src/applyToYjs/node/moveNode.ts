@@ -1,7 +1,7 @@
 import { MoveNodeOperation, Node, Path, Text } from 'slate';
 import * as Y from 'yjs';
 import { Delta } from '../../model/types';
-import { cloneInsertDeltaDeep } from '../../utils/clone';
+import { cloneDeltaDeep } from '../../utils/clone';
 import { getInsertDeltaLength, yTextToInsertDelta } from '../../utils/delta';
 import { getYTarget } from '../../utils/location';
 import {
@@ -27,7 +27,7 @@ export function moveNode(
 
   const origin = getYTarget(sharedRoot, slateRoot, op.path);
   const target = getYTarget(sharedRoot, slateRoot, normalizedNewPath);
-  const insertDelta = cloneInsertDeltaDeep(origin.targetDelta);
+  const insertDelta = cloneDeltaDeep(origin.targetDelta);
 
   const storedPositions = getStoredPositionsInDeltaAbsolute(
     sharedRoot,

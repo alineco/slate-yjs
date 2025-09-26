@@ -251,6 +251,7 @@ function applyDelta(node: Element, slatePath: Path, delta: Delta): Operation[] {
 
 export function translateYTextEvent(
   sharedRoot: Y.XmlText,
+  prevSharedRoot: Y.XmlText,
   editor: Editor,
   event: Y.YTextEvent
 ): Operation[] {

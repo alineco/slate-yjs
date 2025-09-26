@@ -1,6 +1,6 @@
 import { Node, SplitNodeOperation, Text } from 'slate';
 import * as Y from 'yjs';
-import { cloneInsertDeltaDeep } from '../../utils/clone';
+import { cloneDeltaDeep } from '../../utils/clone';
 import { sliceInsertDelta, yTextToInsertDelta } from '../../utils/delta';
 import { getSlateNodeYLength, getYTarget } from '../../utils/location';
 import {
@@ -100,7 +100,7 @@ export function splitNode(
     ySplitOffset,
     length - ySplitOffset
   );
-  const clonedDelta = cloneInsertDeltaDeep(splitDelta);
+  const clonedDelta = cloneDeltaDeep(splitDelta);
 
   const storedPositions = getStoredPositionsInDeltaAbsolute(
     sharedRoot,

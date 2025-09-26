@@ -1,6 +1,7 @@
 import { Editor, Operation } from 'slate';
 import * as Y from 'yjs';
 import { translateYTextEvent } from './textEvent';
+import { ClonedSharedRoot } from '../utils/ClonedSharedRoot';
 
 /**
  * Translate a yjs event into slate operations. The editor state has to match the
@@ -11,11 +12,12 @@ import { translateYTextEvent } from './textEvent';
  */
 export function translateYjsEvent(
   sharedRoot: Y.XmlText,
+  prevSharedRoot: Y.XmlText,
   editor: Editor,
   event: Y.YEvent<Y.XmlText>
 ): Operation[] {
   if (event instanceof Y.YTextEvent) {
-    return translateYTextEvent(sharedRoot, editor, event);
+    return translateYTextEvent(sharedRoot, prevSharedRoot, editor, event);
   }
 
   throw new Error('Unexpected Y event type');
@@ -31,14 +33,21 @@ export function translateYjsEvent(
  */
 export function applyYjsEvents(
   sharedRoot: Y.XmlText,
+  prevSharedRoot: ClonedSharedRoot,
   editor: Editor,
   events: Y.YEvent<Y.XmlText>[]
 ) {
   Editor.withoutNormalizing(editor, () => {
     events.forEach((event) => {
-      translateYjsEvent(sharedRoot, editor, event).forEach((op) => {
+      translateYjsEvent(
+        sharedRoot,
+        prevSharedRoot.sharedRoot,
+        editor,
+        event
+      ).forEach((op) => {
         editor.apply(op);
       });
+      prevSharedRoot.applyEvent(event);
     });
   });
 }
