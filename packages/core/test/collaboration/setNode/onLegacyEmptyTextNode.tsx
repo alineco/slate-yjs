@@ -28,5 +28,3 @@ export const expected = (
 export function run(editor: Editor) {
   Transforms.setNodes(editor, { bold: null, underline: true }, { at: [0, 0] });
 }
-
-export const skip = 'setNodes is not yet supported on legacy text nodes';
