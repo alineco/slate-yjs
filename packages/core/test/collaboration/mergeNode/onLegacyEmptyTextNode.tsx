@@ -31,6 +31,3 @@ export function run(editor: Editor) {
     Transforms.mergeNodes(editor, { at: [0, 1] });
   });
 }
-
-export const skip =
-  'mergeNodes accidentally creates an extra new line when the target is a legacy empty text node';
