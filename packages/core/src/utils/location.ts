@@ -1,13 +1,4 @@
-import {
-  Ancestor,
-  Editor,
-  Element,
-  Node,
-  Path,
-  Point,
-  Range,
-  Text,
-} from 'slate';
+import { Element, Node, Path, Text } from 'slate';
 import * as Y from 'yjs';
 import { InsertDelta, YTarget } from '../model/types';
 import {
@@ -111,19 +102,17 @@ export function getYTarget(
   };
 }
 
-export interface YOffsetToSlateLocationOptions {
+export interface YOffsetToSlateOffsetsOptions {
   yParentDelta?: InsertDelta;
-  association?: 'left' | 'right';
-  mode?: 'default' | 'insert';
+  assoc?: number;
 }
 
-export function yOffsetToSlateLocation(
-  parent: Ancestor,
-  parentPath: Path,
+export function yOffsetToSlateOffsets(
+  parent: Element,
   yOffset: number,
-  options: YOffsetToSlateLocationOptions = {}
-): Path | Point {
-  const { association = 'right', mode = 'default', yParentDelta } = options;
+  options: YOffsetToSlateOffsetsOptions = {}
+): [number, number] {
+  const { yParentDelta, assoc = 0 } = options;
 
   let currentOffset = 0;
   let lastNonEmptyPathOffset = 0;
@@ -133,6 +122,7 @@ export function yOffsetToSlateLocation(
       yParentDelta,
       yOffset: currentOffset,
     });
+    const textLength = Text.isText(child) ? child.text.length : 0;
 
     if (nodeLength > 0) {
       lastNonEmptyPathOffset = pathOffset;
@@ -141,31 +131,21 @@ export function yOffsetToSlateLocation(
     const endOffset = currentOffset + nodeLength;
     if (
       nodeLength > 0 &&
-      (association === 'right' ? endOffset > yOffset : endOffset >= yOffset)
+      (assoc >= 0 ? endOffset > yOffset : endOffset >= yOffset)
     ) {
-      const path = [...parentPath, pathOffset];
-      return Text.isText(child)
-        ? {
-            path,
-            offset: yOffset - currentOffset,
-          }
-        : path;
+      return [pathOffset, Math.min(textLength, yOffset - currentOffset)];
     }
 
     currentOffset += nodeLength;
   }
 
-  if (yOffset > currentOffset + (mode === 'insert' ? 1 : 0)) {
+  if (yOffset > currentOffset) {
     throw new Error('yOffset out of bounds');
   }
 
-  if (mode === 'insert') {
-    return [...parentPath, parent.children.length];
-  }
-
   const child = parent.children[lastNonEmptyPathOffset];
-  const path = [...parentPath, lastNonEmptyPathOffset];
-  return Text.isText(child) ? { path, offset: child.text.length } : path;
+  const textOffset = Text.isText(child) ? child.text.length : 1;
+  return [lastNonEmptyPathOffset, textOffset];
 }
 
 export function getSlatePath(
@@ -213,12 +193,10 @@ export function getSlatePath(
       throw new Error('Cannot descent into slate text');
     }
 
-    const location = yOffsetToSlateLocation(slateParent, path, yOffset, {
+    const [pathOffset] = yOffsetToSlateOffsets(slateParent, yOffset, {
       yParentDelta: currentDelta,
     });
-    const newPath = Path.isPath(location) ? location : location.path;
-    const pathOffset = newPath[newPath.length - 1];
     slateParent = slateParent.children[pathOffset];
-    return newPath;
+    return path.concat(pathOffset);
   }, []);
 }
