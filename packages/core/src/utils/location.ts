@@ -1,4 +1,13 @@
-import { Element, Node, Path, Text } from 'slate';
+import {
+  Ancestor,
+  Editor,
+  Element,
+  Node,
+  Path,
+  Point,
+  Range,
+  Text,
+} from 'slate';
 import * as Y from 'yjs';
 import { InsertDelta, YTarget } from '../model/types';
 import {
@@ -7,6 +16,13 @@ import {
   yTextToInsertDelta,
 } from './delta';
 import { emptyTextAttribute } from './yjs';
+import { getProperties } from './slate';
+import { deepEquals } from './object';
+
+export interface LocationRange {
+  start: Path | Point;
+  end: Path | Point;
+}
 
 export interface GetSlateNodeYLengthOptions {
   yParentDelta?: InsertDelta;
@@ -102,15 +118,19 @@ export function getYTarget(
   };
 }
 
-export function yOffsetToSlateOffsets(
-  parent: Element,
+export interface YOffsetToSlateLocationOptions {
+  yParentDelta?: InsertDelta;
+  association?: 'left' | 'right';
+  mode?: 'default' | 'insert';
+}
+
+export function yOffsetToSlateLocation(
+  parent: Ancestor,
+  parentPath: Path,
   yOffset: number,
-  options: Pick<GetSlateNodeYLengthOptions, 'yParentDelta'> & {
-    assoc?: number;
-    insert?: boolean;
-  } = {}
-): [number, number] {
-  const { assoc = 0, insert = false, yParentDelta } = options;
+  options: YOffsetToSlateLocationOptions = {}
+): Path | Point {
+  const { association = 'right', mode = 'default', yParentDelta } = options;
 
   let currentOffset = 0;
   let lastNonEmptyPathOffset = 0;
@@ -128,25 +148,31 @@ export function yOffsetToSlateOffsets(
     const endOffset = currentOffset + nodeLength;
     if (
       nodeLength > 0 &&
-      (assoc >= 0 ? endOffset > yOffset : endOffset >= yOffset)
+      (association === 'right' ? endOffset > yOffset : endOffset >= yOffset)
     ) {
-      return [pathOffset, yOffset - currentOffset];
+      const path = [...parentPath, pathOffset];
+      return Text.isText(child)
+        ? {
+            path,
+            offset: yOffset - currentOffset,
+          }
+        : path;
     }
 
     currentOffset += nodeLength;
   }
 
-  if (yOffset > currentOffset + (insert ? 1 : 0)) {
+  if (yOffset > currentOffset + (mode === 'insert' ? 1 : 0)) {
     throw new Error('yOffset out of bounds');
   }
 
-  if (insert) {
-    return [parent.children.length, 0];
+  if (mode === 'insert') {
+    return [...parentPath, parent.children.length];
   }
 
   const child = parent.children[lastNonEmptyPathOffset];
-  const textOffset = Text.isText(child) ? child.text.length : 1;
-  return [lastNonEmptyPathOffset, textOffset];
+  const path = [...parentPath, lastNonEmptyPathOffset];
+  return Text.isText(child) ? { path, offset: child.text.length } : path;
 }
 
 export function getSlatePath(
@@ -194,10 +220,132 @@ export function getSlatePath(
       throw new Error('Cannot descent into slate text');
     }
 
-    const [pathOffset] = yOffsetToSlateOffsets(slateParent, yOffset, {
+    const location = yOffsetToSlateLocation(slateParent, path, yOffset, {
       yParentDelta: currentDelta,
     });
+    const newPath = Path.isPath(location) ? location : location.path;
+    const pathOffset = newPath[newPath.length - 1];
     slateParent = slateParent.children[pathOffset];
-    return path.concat(pathOffset);
+    return newPath;
   }, []);
+}
+
+export function* slateChildrenInRange(
+  parent: Ancestor,
+  parentPath: Path,
+  { start, end }: LocationRange
+): Generator<Path | Range> {
+  const startIsPath = Path.isPath(start);
+  const endIsPath = Path.isPath(end);
+
+  const startPath = startIsPath ? start : start.path;
+  const endPath = endIsPath ? end : end.path;
+
+  const startPathOffset = startPath[startPath.length - 1];
+  const endPathOffset = endPath[endPath.length - 1];
+
+  // Single node
+  if (startPathOffset === endPathOffset) {
+    if (startIsPath || endIsPath) {
+      yield startPath;
+    } else {
+      const child = parent.children[startPathOffset];
+      if (!Text.isText(child)) throw new Error('Expected text');
+      const { length } = child.text;
+
+      if (start.offset === 0 && end.offset === length) {
+        // The entire node is covered, so return its path
+        yield startPath;
+      } else if (start.offset === end.offset) {
+        // The range is empty, so return nothing
+      } else {
+        yield { anchor: start, focus: end };
+      }
+    }
+
+    return;
+  }
+
+  // Distinct nodes
+  for (let i = endPathOffset; i >= startPathOffset; i--) {
+    const path = [...parentPath, i];
+    const isStartNode = i === startPathOffset;
+    const isEndNode = i === endPathOffset;
+
+    // Return the entirety of nodes between the start and end nodes
+    if (!isStartNode && !isEndNode) {
+      yield path;
+      continue;
+    }
+
+    const child = parent.children[i];
+    if (!Text.isText(child)) throw new Error('Expected text');
+    const { length } = child.text;
+
+    /**
+     * If the start location is a path or the start of a node, return the entire
+     * node.
+     */
+    if (isStartNode && (startIsPath || start.offset === 0)) {
+      yield path;
+      continue;
+    }
+
+    /**
+     * If the end location is a path or the end of a node, return the entire
+     * node.
+     */
+    if (isEndNode && (endIsPath || end.offset === length)) {
+      yield path;
+      continue;
+    }
+
+    // If the start point is at the end of the node, skip it
+    if (isStartNode && !startIsPath && start.offset < length) {
+      yield { anchor: start, focus: { path, offset: length } };
+      continue;
+    }
+
+    // If the end point is at the start of the node, skip it
+    if (isEndNode && !endIsPath && end.offset > 0) {
+      yield { anchor: { path, offset: 0 }, focus: end };
+      continue;
+    }
+  }
+}
+
+export function getInsertTextPoint(
+  editor: Editor,
+  at: Path | Point,
+  attributes: Record<string, unknown>
+): Point | null {
+  const isPoint = Point.isPoint(at);
+  const atPath = isPoint ? at.path : at;
+  const node = Node.has(editor, atPath) ? Node.get(editor, atPath) : null;
+
+  const isSuitable = (candidate: Node) =>
+    Text.isText(candidate) && deepEquals(getProperties(candidate), attributes);
+
+  if (isPoint && node && isSuitable(node)) return at;
+
+  const canCheckPrevious =
+    Path.hasPrevious(atPath) && (!isPoint || at.offset === 0);
+
+  if (canCheckPrevious) {
+    const previousPath = Path.previous(atPath);
+    const previousNode = Node.get(editor, previousPath);
+    if (isSuitable(previousNode)) return Editor.end(editor, previousPath);
+  }
+
+  const canCheckNext = isPoint && Editor.isEnd(editor, at, atPath);
+
+  if (canCheckNext) {
+    const nextPath = Path.next(atPath);
+    const nextNode = Node.has(editor, nextPath)
+      ? Node.get(editor, nextPath)
+      : null;
+    if (nextNode && isSuitable(nextNode)) return Editor.start(editor, nextPath);
+  }
+
+  return null;
 }

@@ -96,7 +96,7 @@ export function Editor() {
   }, [editor]);
 
   return (
-    <Slate value={value} onChange={setValue} editor={editor}>
+    <Slate initialValue={value} onChange={setValue} editor={editor}>
       <Editable
         ...
       />

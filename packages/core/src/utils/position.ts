@@ -1,8 +1,8 @@
-import { BasePoint, BaseRange, Node, Text } from 'slate';
+import { BasePoint, BaseRange, Node, Point, Text } from 'slate';
 import * as Y from 'yjs';
 import { InsertDelta, RelativeRange, TextRange } from '../model/types';
 import { getInsertDeltaLength, yTextToInsertDelta } from './delta';
-import { getSlatePath, getYTarget, yOffsetToSlateOffsets } from './location';
+import { getSlatePath, getYTarget, yOffsetToSlateLocation } from './location';
 import { assertDocumentAttachment } from './yjs';
 
 export const STORED_POSITION_PREFIX = '__slateYjsStoredPosition_';
@@ -50,16 +50,12 @@ export function absolutePositionToSlatePoint(
     );
   }
 
-  const [pathOffset, textOffset] = yOffsetToSlateOffsets(type, parent, index, {
-    assoc,
+  // TODO: Make sure nothing is broken as a result of yOffsetToSlateLocation sometimes returning paths (e.g. for empty text nodes)
+  const location = yOffsetToSlateLocation(parent, parentPath, index, {
+    association: assoc >= 0 ? 'right' : 'left',
   });
 
-  const target = parent.children[pathOffset];
-  if (!Text.isText(target)) {
-    return null;
-  }
-
-  return { path: [...parentPath, pathOffset], offset: textOffset };
+  return Point.isPoint(location) ? location : null;
 }
 
 export function relativePositionToSlatePoint(

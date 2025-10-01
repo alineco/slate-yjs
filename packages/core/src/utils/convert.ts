@@ -9,18 +9,36 @@ import {
   omitEmptyTextAttribute,
 } from './yjs';
 
-export function yTextToSlateElement(yText: Y.XmlText): Element {
+export interface DeltaInsertToSlateNodeOptions {
+  /**
+   * If true, empty yTexts will be converted to empty Slate elements, with no
+   * children. By default, empty text nodes will be inserted for empty yTexts.
+   * @default false
+   */
+  allowEmptyElements?: boolean;
+}
+
+export function yTextToSlateElement(
+  yText: Y.XmlText,
+  options: DeltaInsertToSlateNodeOptions = {}
+): Element {
+  const { allowEmptyElements = false } = options;
   const delta = yTextToInsertDelta(yText);
 
   const children =
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    delta.length > 0 ? delta.map(deltaInsertToSlateNode) : [{ text: '' }];
+    allowEmptyElements || delta.length > 0
+      ? // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        delta.map((insert) => deltaInsertToSlateNode(insert, options))
+      : [{ text: '' }];
   const attributes = yText.getAttributes();
 
   return { ...attributes, children };
 }
 
-export function deltaInsertToSlateNode(insert: DeltaInsert): Node {
+export function deltaInsertToSlateNode(
+  insert: DeltaInsert,
+  options: DeltaInsertToSlateNodeOptions = {}
+): Node {
   if (typeof insert.insert === 'string') {
     if (isInsertDeltaEmptyText(insert)) {
       return { ...omitEmptyTextAttribute(insert.attributes), text: '' };
@@ -29,7 +47,7 @@ export function deltaInsertToSlateNode(insert: DeltaInsert): Node {
     return { ...insert.attributes, text: insert.insert };
   }
 
-  return yTextToSlateElement(insert.insert);
+  return yTextToSlateElement(insert.insert, options);
 }
 
 export function slateNodesToInsertDelta(nodes: Node[]): InsertDelta {

@@ -1,5 +1,5 @@
 /** @jsx jsx */
-import { Editor, Transforms } from 'slate';
+import { Editor, Element, Transforms } from 'slate';
 import { jsx } from '../../../../../support/jsx';
 
 export const input = (
@@ -29,7 +29,7 @@ export function run(editor: Editor) {
     editor,
     { noteId: 'note2' },
     {
-      match: (node) => Editor.isInline(editor, node),
+      match: (node) => Element.isElement(node) && Editor.isInline(editor, node),
     }
   );
 }

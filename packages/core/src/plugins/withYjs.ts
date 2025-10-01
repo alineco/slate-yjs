@@ -180,8 +180,8 @@ export function withYjs<T extends Editor>(
   e.applyRemoteEvents = (events, origin) => {
     YjsEditor.flushLocalChanges(e);
 
-    Editor.withoutNormalizing(e, () => {
-      YjsEditor.withOrigin(e, origin, () => {
+    YjsEditor.withOrigin(e, origin, () => {
+      Editor.withoutNormalizing(e, () => {
         if (!prevSharedRoot)
           throw new Error(
             'Cannot apply remote events before prevSharedRoot is created'
@@ -279,7 +279,12 @@ export function withYjs<T extends Editor>(
   const { apply, onChange } = e;
   e.apply = (op) => {
     if (YjsEditor.connected(e) && YjsEditor.isLocal(e)) {
+      console.log('local');
+      console.dir(op, { depth: null });
       YjsEditor.storeLocalChange(e, op);
+    } else {
+      console.log('remote');
+      console.dir(op, { depth: null });
     }
 
     apply(op);

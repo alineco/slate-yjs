@@ -17,19 +17,25 @@ export class ClonedSharedRoot {
     });
   }
 
+  getCloned(original: Y.XmlText): Y.XmlText {
+    const cloned = this.sharedTypeMap.get(original);
+    if (!cloned) throw new Error('Y text without corresponding cloned text');
+    return cloned;
+  }
+
   applyEvent(event: Y.YEvent<Y.XmlText>) {
     const {
       target: originalTarget,
       changes: { delta, keys },
     } = event;
 
-    const clonedTarget = this.sharedTypeMap.get(originalTarget);
-    if (!clonedTarget)
-      throw new Error('Y target without corresponding cloned target');
+    const clonedTarget = this.getCloned(originalTarget);
 
     const clonedDelta = cloneDeltaDeep(delta as Delta, {
       cloneMap: this.sharedTypeMap,
     });
+
+    console.log({ delta, clonedDelta });
 
     clonedTarget.applyDelta(clonedDelta, { sanitize: false });
 

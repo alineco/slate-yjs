@@ -62,7 +62,7 @@ export function SimplePage() {
 
   return (
     <div className="flex justify-center my-32 mx-10">
-      <Slate value={value} onChange={setValue} editor={editor}>
+      <Slate initialValue={value} onChange={setValue} editor={editor}>
         <FormatToolbar />
         <CustomEditable className="max-w-4xl w-full flex-col break-words" />
       </Slate>

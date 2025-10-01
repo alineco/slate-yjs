@@ -71,7 +71,7 @@ export function RemoteCursorsOverlayPage() {
 
   return (
     <React.Fragment>
-      <Slate value={value} onChange={setValue} editor={editor}>
+      <Slate initialValue={value} onChange={setValue} editor={editor}>
         <RemoteCursorOverlay className="flex justify-center my-32 mx-10">
           <FormatToolbar />
           <CustomEditable className="max-w-4xl w-full flex-col break-words" />
