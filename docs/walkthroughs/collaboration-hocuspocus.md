@@ -84,16 +84,27 @@ export function Editor() {
     return e;
   }, [provider.document]);
 
-  // Connect editor and provider in useEffect to comply with concurrent mode
-  // requirements.
+  /**
+   * Do not connect YjsEditor until the provider has synced. This prevents the
+   * insertion of additional paragraphs at the start of the document.
+   */
+  useEffect(() => {
+    if (!YjsEditor.connected(editor)) {
+      const onSynced = () => {
+        YjsEditor.connect(editor);
+        provider.off('synced', onSynced);
+      };
+      provider.on('synced', onSynced);
+      return () => {
+        provider.off('synced', onSynced);
+      };
+    }
+  }, [provider, editor]);
+
   useEffect(() => {
     provider.connect();
     return () => provider.disconnect();
   }, [provider]);
-  useEffect(() => {
-    YjsEditor.connect(editor);
-    return () => YjsEditor.disconnect(editor);
-  }, [editor]);
 
   return (
     <Slate initialValue={value} onChange={setValue} editor={editor}>

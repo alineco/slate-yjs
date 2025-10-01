@@ -58,23 +58,34 @@ export function RemoteCursorsOverlayPage() {
     );
   }, [provider.awareness, provider.document]);
 
-  // Connect editor and provider in useEffect to comply with concurrent mode
-  // requirements.
+  /**
+   * Do not connect YjsEditor until the provider has synced. This prevents the
+   * insertion of additional paragraphs at the start of the document.
+   */
+  useEffect(() => {
+    if (!YjsEditor.connected(editor)) {
+      const onSynced = () => {
+        YjsEditor.connect(editor);
+        provider.off('synced', onSynced);
+      };
+      provider.on('synced', onSynced);
+      return () => {
+        provider.off('synced', onSynced);
+      };
+    }
+  }, [provider, editor]);
+
   useEffect(() => {
     provider.connect();
     return () => provider.disconnect();
   }, [provider]);
-  useEffect(() => {
-    YjsEditor.connect(editor);
-    return () => YjsEditor.disconnect(editor);
-  }, [editor]);
 
   return (
     <React.Fragment>
       <Slate initialValue={value} onChange={setValue} editor={editor}>
         <RemoteCursorOverlay className="flex justify-center my-32 mx-10">
           <FormatToolbar />
-          <CustomEditable className="max-w-4xl w-full flex-col break-words" />
+          <CustomEditable className="max-w-4xl w-full flex-col break-words outline-none" />
         </RemoteCursorOverlay>
         <ConnectionToggle connected={connected} onClick={toggleConnection} />
       </Slate>
