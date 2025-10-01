@@ -1,13 +1,4 @@
-import {
-  Ancestor,
-  Editor,
-  Node,
-  Path,
-  Point,
-  Range,
-  Text,
-  Transforms,
-} from 'slate';
+import { Editor, Node, Path, Point, Range, Text, Transforms } from 'slate';
 import * as Y from 'yjs';
 import { Delta, InsertDelta } from '../model/types';
 import { deltaInsertToSlateNode } from '../utils/convert';
@@ -159,8 +150,6 @@ function applyDelta(
   yParent: Y.XmlText,
   delta: Delta
 ) {
-  console.log(delta);
-  const getParent = () => Node.get(editor, parentPath) as Ancestor;
   const yParentDelta = yParent.toDelta();
 
   let yOffset = delta.reduce((length, change) => {

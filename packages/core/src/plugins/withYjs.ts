@@ -279,12 +279,7 @@ export function withYjs<T extends Editor>(
   const { apply, onChange } = e;
   e.apply = (op) => {
     if (YjsEditor.connected(e) && YjsEditor.isLocal(e)) {
-      console.log('local');
-      console.dir(op, { depth: null });
       YjsEditor.storeLocalChange(e, op);
-    } else {
-      console.log('remote');
-      console.dir(op, { depth: null });
     }
 
     apply(op);

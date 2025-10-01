@@ -35,8 +35,6 @@ export class ClonedSharedRoot {
       cloneMap: this.sharedTypeMap,
     });
 
-    console.log({ delta, clonedDelta });
-
     clonedTarget.applyDelta(clonedDelta, { sanitize: false });
 
     for (const key of keys.keys()) {
