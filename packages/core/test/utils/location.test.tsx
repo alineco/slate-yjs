@@ -4,6 +4,7 @@ import { Ancestor, Descendant } from 'slate';
 import { jsx } from '../../../../support/jsx';
 import { yTextFactory } from '../yTextFactory';
 import { yOffsetToSlateOffsets } from '../../src/utils/location';
+import { yTextToInsertDelta } from '../../src/utils/delta';
 
 describe('yOffsetToSlateOffsets', () => {
   describe('with block children', () => {
@@ -16,7 +17,7 @@ describe('yOffsetToSlateOffsets', () => {
     );
 
     const parent: Ancestor = <unstyled>{content}</unstyled>;
-    const yParentDelta = yTextFactory(content).toDelta();
+    const yParentDelta = yTextToInsertDelta(yTextFactory(content));
 
     it('returns the first child', () => {
       const [pathOffset] = yOffsetToSlateOffsets(parent, 0, {
@@ -74,7 +75,7 @@ describe('yOffsetToSlateOffsets', () => {
     );
 
     const parent: Ancestor = <unstyled>{content}</unstyled>;
-    const yParentDelta = yTextFactory(content).toDelta();
+    const yParentDelta = yTextToInsertDelta(yTextFactory(content));
 
     it('returns a point at the start of the first text node', () => {
       const [pathOffset, textOffset] = yOffsetToSlateOffsets(parent, 0, {
@@ -131,7 +132,7 @@ describe('yOffsetToSlateOffsets', () => {
     );
 
     const parent: Ancestor = <unstyled>{content}</unstyled>;
-    const yParentDelta = yTextFactory(content).toDelta();
+    const yParentDelta = yTextToInsertDelta(yTextFactory(content));
 
     it('returns the first empty text node', () => {
       const [pathOffset, textOffset] = yOffsetToSlateOffsets(parent, 0, {
@@ -197,7 +198,7 @@ describe('yOffsetToSlateOffsets', () => {
     );
 
     const parent: Ancestor = <unstyled>{content}</unstyled>;
-    const yParentDelta = yTextFactory(yContent).toDelta();
+    const yParentDelta = yTextToInsertDelta(yTextFactory(yContent));
 
     it('returns the inline element', () => {
       const [pathOffset] = yOffsetToSlateOffsets(parent, 0, {

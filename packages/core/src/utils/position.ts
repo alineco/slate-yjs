@@ -51,7 +51,7 @@ export function absolutePositionToSlatePoint(
   }
 
   const [pathOffset, textOffset] = yOffsetToSlateOffsets(parent, index, {
-    yParentDelta: type.toDelta(),
+    yParentDelta: yTextToInsertDelta(type),
     assoc,
   });
 

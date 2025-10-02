@@ -10,6 +10,7 @@ import {
   omitEmptyTextAttribute,
 } from '../utils/emptyText';
 import { ClonedSharedRoot } from '../utils/ClonedSharedRoot';
+import { yTextToInsertDelta } from '../utils/delta';
 
 function* getSlateTargetsInRange(
   editor: Editor,
@@ -153,7 +154,7 @@ function applyDelta(
   yParent: Y.XmlText,
   delta: Delta
 ) {
-  const yParentDelta = yParent.toDelta();
+  const yParentDelta = yTextToInsertDelta(yParent);
 
   let yOffset = delta.reduce((length, change) => {
     if ('retain' in change) {
