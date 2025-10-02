@@ -30,7 +30,6 @@ export const expected = (
 
 export const expectedStoredPositions = {
   before: { path: [0, 0], offset: 11 },
-  // Possibly this should be { path: [1, 0], offset: 0 } instead
   on: { path: [0, 0], offset: 12 },
   nextBlock: { path: [2, 0], offset: 0 },
 };

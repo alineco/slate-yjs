@@ -35,7 +35,6 @@ export const expected = (
 
 export const expectedStoredPositions = {
   before: { path: [0, 1], offset: 4 },
-  // Possibly this should be { path: [1, 0], offset: 0 } instead
   on: { path: [0, 1], offset: 5 },
 };
 

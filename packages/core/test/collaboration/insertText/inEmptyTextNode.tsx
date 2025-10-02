@@ -25,12 +25,9 @@ export const expected = (
 );
 
 export const expectedStoredPositions = {
-  at: { path: [0, 0], offset: 5 },
+  at: { path: [0, 0], offset: 0 },
 };
 
 export function run(editor: Editor) {
   editor.insertText('hello');
 }
-
-export const skip =
-  'Stored positions associate left instead of right on empty text nodes';
