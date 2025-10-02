@@ -6,6 +6,12 @@ import { FixtureModule, fixtures } from '../../../support/fixtures';
 import { yTextToSlateElement } from '../src';
 import { withTestingElements } from './withTestingElements';
 import { inspectYText } from './inspectYText';
+import {
+  getStoredPosition,
+  relativePositionToSlatePoint,
+  setStoredPosition,
+  slatePointToRelativePosition,
+} from '../src/utils/position';
 
 async function normalizedSlateDoc(sharedRoot: Y.XmlText) {
   const editor = createEditor();
@@ -16,8 +22,17 @@ async function normalizedSlateDoc(sharedRoot: Y.XmlText) {
 }
 
 async function runCollaborationTest({ module }: { module: FixtureModule }) {
+  const {
+    input,
+    yInput,
+    inputStoredPositions = {},
+    run,
+    expected,
+    yExpected,
+    expectedStoredPositions = {},
+  } = module;
+
   // Setup 'local' editor
-  const { input, yInput, run, expected, yExpected } = module;
   const editor = await withTestingElements(input, { sharedType: yInput });
 
   // Keep the 'local' editor state before applying run.
@@ -32,6 +47,15 @@ async function runCollaborationTest({ module }: { module: FixtureModule }) {
     );
   }
 
+  for (const [key, point] of Object.entries(inputStoredPositions)) {
+    const position = slatePointToRelativePosition(
+      editor.sharedRoot,
+      editor,
+      point
+    );
+    setStoredPosition(editor.sharedRoot, key, position);
+  }
+
   run(editor);
   editor.onChange();
 
@@ -43,6 +67,23 @@ async function runCollaborationTest({ module }: { module: FixtureModule }) {
       editor.children
     );
   }
+
+  // Verify that stored positions are updated correctly
+  const actualStoredPositions = Object.fromEntries(
+    Object.keys(inputStoredPositions).map((key) => {
+      const position = getStoredPosition(editor.sharedRoot, key);
+      if (!position) return [key, null];
+
+      const point = relativePositionToSlatePoint(
+        editor.sharedRoot,
+        editor,
+        position
+      );
+      return [key, point];
+    })
+  );
+
+  expect(actualStoredPositions).toEqual(expectedStoredPositions);
 
   // Setup remote editor with input base state
   const remoteDoc = new Y.Doc();

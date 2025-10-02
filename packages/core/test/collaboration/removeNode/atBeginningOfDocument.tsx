@@ -12,6 +12,11 @@ export const input = (
   </editor>
 );
 
+export const inputStoredPositions = {
+  removed: { path: [0, 0], offset: 0 },
+  after: { path: [1, 0], offset: 0 },
+};
+
 export const expected = (
   <editor>
     <unstyled id="myBlockId">
@@ -20,6 +25,11 @@ export const expected = (
     </unstyled>
   </editor>
 );
+
+export const expectedStoredPositions = {
+  removed: null,
+  after: { path: [0, 0], offset: 0 },
+};
 
 export function run(editor: Editor) {
   Transforms.removeNodes(editor);

@@ -12,6 +12,12 @@ export const input = (
   </editor>
 );
 
+export const inputStoredPositions = {
+  before: { path: [0, 0], offset: 12 },
+  at: { path: [1, 0], offset: 0 },
+  after: { path: [1, 0], offset: 1 },
+};
+
 export const expected = (
   <editor>
     <unstyled>
@@ -22,6 +28,14 @@ export const expected = (
   </editor>
 );
 
+export const expectedStoredPositions = {
+  before: { path: [0, 0], offset: 12 },
+  at: { path: [0, 0], offset: 12 },
+  after: { path: [0, 0], offset: 13 },
+};
+
 export function run(editor: Editor) {
   editor.deleteBackward('character');
 }
+
+export const skip = 'Stored positions in merged nodes are nullified';

@@ -13,6 +13,11 @@ export const input = (
   </editor>
 );
 
+export const inputStoredPositions = {
+  on: { path: [0, 0], offset: 0 },
+  after: { path: [0, 0], offset: 1 },
+};
+
 export const expected = (
   <editor>
     <unstyled>
@@ -26,6 +31,11 @@ export const expected = (
     </unstyled>
   </editor>
 );
+
+export const expectedStoredPositions = {
+  on: { path: [1, 0], offset: 0 },
+  after: { path: [1, 0], offset: 1 },
+};
 
 export function run(editor: Editor) {
   Editor.withoutNormalizing(editor, () => {

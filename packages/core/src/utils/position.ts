@@ -8,7 +8,7 @@ import { assertDocumentAttachment } from './yjs';
 export const STORED_POSITION_PREFIX = '__slateYjsStoredPosition_';
 
 /**
- * Map from path string -> name -> absolute position.
+ * Map from path string -> key -> absolute position.
  *
  * The path string represents the path of the shared type in which the positions
  * are located relative to some arbitrary root shared type (not necessarily the

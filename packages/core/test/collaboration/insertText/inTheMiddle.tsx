@@ -10,6 +10,12 @@ export const input = (
   </editor>
 );
 
+export const inputStoredPositions = {
+  before: { path: [0, 0], offset: 5 },
+  at: { path: [0, 0], offset: 6 },
+  after: { path: [0, 0], offset: 7 },
+};
+
 export const expected = (
   <editor>
     <unstyled>
@@ -27,6 +33,12 @@ export const inputRemoteEditor = (
     </unstyled>
   </editor>
 );
+
+export const expectedStoredPositions = {
+  before: { path: [0, 0], offset: 5 },
+  at: { path: [0, 0], offset: 11 },
+  after: { path: [0, 0], offset: 12 },
+};
 
 export function run(editor: Editor) {
   editor.insertText('world');

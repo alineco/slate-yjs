@@ -12,6 +12,13 @@ export const input = (
   </editor>
 );
 
+export const inputStoredPositions = {
+  block1Start: { path: [0, 0], offset: 0 },
+  block1End: { path: [0, 0], offset: 12 },
+  block2Start: { path: [1, 0], offset: 0 },
+  block2End: { path: [1, 0], offset: 21 },
+};
+
 export const expected = (
   <editor>
     <unstyled id="block2">Welcome to slate-yjs!</unstyled>
@@ -21,6 +28,13 @@ export const expected = (
     </unstyled>
   </editor>
 );
+
+export const expectedStoredPositions = {
+  block1Start: { path: [1, 0], offset: 0 },
+  block1End: { path: [1, 0], offset: 12 },
+  block2Start: { path: [0, 0], offset: 0 },
+  block2End: { path: [0, 0], offset: 21 },
+};
 
 export function run(editor: Editor) {
   Transforms.moveNodes(editor, {

@@ -6,16 +6,23 @@ export const input = (
   <editor>
     <unstyled>
       <anchor />
-      Hello world!
-      <focus />
+      Hello <focus />
+      world!
     </unstyled>
   </editor>
 );
+
+export const inputStoredPositions = {
+  start: { path: [0, 0], offset: 0 },
+  removed: { path: [0, 0], offset: 1 },
+  end: { path: [0, 0], offset: 6 },
+};
 
 export const expected = (
   <editor>
     <unstyled>
       <cursor />
+      world!
     </unstyled>
   </editor>
 );
@@ -29,6 +36,12 @@ export const inputRemoteEditor = (
     </unstyled>
   </editor>
 );
+
+export const expectedStoredPositions = {
+  start: { path: [0, 0], offset: 0 },
+  removed: { path: [0, 0], offset: 0 },
+  end: { path: [0, 0], offset: 0 },
+};
 
 export function run(editor: Editor) {
   Transforms.delete(editor);

@@ -12,6 +12,10 @@ export const input = (
   </editor>
 );
 
+export const inputStoredPositions = {
+  after: { path: [0, 0], offset: 7 },
+};
+
 export const expected = (
   <editor>
     <unstyled>
@@ -21,6 +25,10 @@ export const expected = (
     </unstyled>
   </editor>
 );
+
+export const expectedStoredPositions = {
+  after: { path: [0, 1], offset: 2 },
+};
 
 export function run(editor: Editor) {
   editor.addMark('bold', true);

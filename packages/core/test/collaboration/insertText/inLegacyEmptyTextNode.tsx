@@ -19,6 +19,10 @@ export const yInput = yTextFactory(
   </editor>
 );
 
+export const inputStoredPositions = {
+  at: { path: [0, 0], offset: 0 },
+};
+
 export const expected = (
   <editor>
     <unstyled>
@@ -27,6 +31,13 @@ export const expected = (
   </editor>
 );
 
+export const expectedStoredPositions = {
+  at: { path: [0, 0], offset: 5 },
+};
+
 export function run(editor: Editor) {
   editor.insertText('hello');
 }
+
+export const skip =
+  'Stored positions associate left instead of right on empty text nodes';

@@ -19,6 +19,10 @@ export const yInput = yTextFactory(
   </editor>
 );
 
+export const inputStoredPositions = {
+  on: { path: [0, 0], offset: 0 },
+};
+
 export const expected = (
   <editor>
     <unstyled>
@@ -31,6 +35,11 @@ export const expected = (
     </unstyled>
   </editor>
 );
+
+export const expectedStoredPositions = {
+  // Possibly this should be { path: [1, 0], offset: 0 } instead
+  on: { path: [0, 0], offset: 0 },
+};
 
 export function run(editor: Editor) {
   Editor.withoutNormalizing(editor, () => {

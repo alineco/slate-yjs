@@ -2,7 +2,7 @@
 /* eslint-disable global-require */
 /* eslint-disable import/no-dynamic-require */
 /* eslint-disable import/no-extraneous-dependencies */
-import { Editor } from 'slate';
+import { Editor, Point } from 'slate';
 import * as Y from 'yjs';
 import * as fs from 'fs';
 import { basename, extname, resolve } from 'path';
@@ -12,8 +12,10 @@ import chalk from 'chalk';
 export interface FixtureModule {
   input: Editor;
   yInput?: Y.XmlText;
+  inputStoredPositions?: Record<string, Point>;
   expected: Editor;
   yExpected?: Y.XmlText;
+  expectedStoredPositions?: Record<string, Point | null>;
   run: (e: Editor) => void;
   skip?: string | (() => string | null);
 }
@@ -63,7 +65,9 @@ export function fixtures<P extends any[]>(...args: P) {
 
           if (skipReason) {
             // eslint-disable-next-line no-console
-            console.warn(chalk.yellow(`Skipped ${name}: ${skipReason}`));
+            console.warn(
+              chalk.yellow(`Skipped ${dir} > ${name}: ${skipReason}`)
+            );
             return;
           }
 
