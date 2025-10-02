@@ -1,7 +1,7 @@
 import { Node, RemoveTextOperation, Text } from 'slate';
 import type * as Y from 'yjs';
 import { getYTarget } from '../../utils/location';
-import { emptyTextAttribute, emptyTextChar } from '../../utils/yjs';
+import { insertEmptyText } from '../../utils/emptyText';
 import { getProperties } from '../../utils/slate';
 
 export function removeText(
@@ -21,9 +21,6 @@ export function removeText(
   target.delete(textRange.start + offset, length);
 
   if (Text.isText(slateTarget) && slateTarget.text.length === length) {
-    target.insert(textRange.start, emptyTextChar, {
-      ...getProperties(slateTarget),
-      [emptyTextAttribute]: true,
-    });
+    insertEmptyText(target, textRange.start, getProperties(slateTarget));
   }
 }

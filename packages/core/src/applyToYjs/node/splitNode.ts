@@ -7,7 +7,7 @@ import {
   getStoredPositionsInDeltaAbsolute,
   restoreStoredPositionsWithDeltaAbsolute,
 } from '../../utils/position';
-import { emptyTextAttribute, emptyTextChar } from '../../utils/yjs';
+import { EMPTY_TEXT_ATTRIBUTE, insertEmptyText } from '../../utils/emptyText';
 
 export function splitNode(
   sharedRoot: Y.XmlText,
@@ -31,7 +31,7 @@ export function splitNode(
     target.targetDelta.forEach((element) => {
       if (element.attributes) {
         Object.entries(element.attributes).forEach(([key, value]) => {
-          if (key !== emptyTextAttribute) {
+          if (key !== EMPTY_TEXT_ATTRIBUTE) {
             oldProperties[key] = value;
             unset[key] = null;
           }
@@ -43,17 +43,12 @@ export function splitNode(
     let length = target.textRange.end - ySplitOffset;
 
     if (op.position === 0) {
-      target.yParent.insert(ySplitOffset, emptyTextChar, {
-        ...oldProperties,
-        [emptyTextAttribute]: true,
-      });
+      insertEmptyText(target.yParent, ySplitOffset, oldProperties);
       ySplitOffset++;
     }
 
     if (length === 0) {
-      target.yParent.insert(ySplitOffset, emptyTextChar, {
-        [emptyTextAttribute]: true,
-      });
+      insertEmptyText(target.yParent, ySplitOffset);
       length++;
     }
 

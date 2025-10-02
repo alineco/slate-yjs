@@ -3,7 +3,7 @@ import * as Y from 'yjs';
 import { slateElementToYText } from '../../utils/convert';
 import { getYTarget } from '../../utils/location';
 import { getProperties } from '../../utils/slate';
-import { emptyTextAttribute, emptyTextChar } from '../../utils/yjs';
+import { insertEmptyText } from '../../utils/emptyText';
 
 export function insertNode(
   sharedRoot: Y.XmlText,
@@ -18,10 +18,8 @@ export function insertNode(
     const attributes = getProperties(node);
 
     if (text.length === 0) {
-      return yParent.insert(textRange.start, emptyTextChar, {
-        ...attributes,
-        [emptyTextAttribute]: true,
-      });
+      insertEmptyText(yParent, textRange.start, attributes);
+      return;
     }
 
     return yParent.insert(

@@ -1,7 +1,7 @@
 import { Node, SetNodeOperation, Text } from 'slate';
 import * as Y from 'yjs';
 import { getYTarget } from '../../utils/location';
-import { emptyTextAttribute, emptyTextChar } from '../../utils/yjs';
+import { insertEmptyText } from '../../utils/emptyText';
 
 export function setNode(
   sharedRoot: Y.XmlText,
@@ -25,9 +25,7 @@ export function setNode(
     slateTarget.text.length === 0 &&
     length === 0
   ) {
-    yParent.insert(textRange.start, emptyTextChar, {
-      [emptyTextAttribute]: true,
-    });
+    insertEmptyText(yParent, textRange.start);
     setNode(sharedRoot, slateRoot, op);
     return;
   }

@@ -3,11 +3,7 @@ import * as Y from 'yjs';
 import { DeltaInsert, InsertDelta } from '../model/types';
 import { isInsertDeltaEmptyText, yTextToInsertDelta } from './delta';
 import { getProperties } from './slate';
-import {
-  emptyTextAttribute,
-  emptyTextChar,
-  omitEmptyTextAttribute,
-} from './yjs';
+import { getEmptyTextInsert, omitEmptyTextAttribute } from './emptyText';
 
 export interface DeltaInsertToSlateNodeOptions {
   /**
@@ -55,15 +51,9 @@ export function slateNodesToInsertDelta(nodes: Node[]): InsertDelta {
     if (Text.isText(node)) {
       const { text } = node;
       const attributes = getProperties(node);
-
-      if (text.length === 0) {
-        return {
-          insert: emptyTextChar,
-          attributes: { ...attributes, [emptyTextAttribute]: true },
-        };
-      }
-
-      return { insert: text, attributes };
+      return text.length
+        ? { insert: text, attributes }
+        : getEmptyTextInsert(attributes);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-use-before-define

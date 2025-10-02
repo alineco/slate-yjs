@@ -6,7 +6,7 @@ import {
   sliceInsertDelta,
   yTextToInsertDelta,
 } from './delta';
-import { emptyTextAttribute } from './yjs';
+import { EMPTY_TEXT_ATTRIBUTE } from './emptyText';
 
 export interface GetSlateNodeYLengthOptions {
   yParentDelta?: InsertDelta;
@@ -30,7 +30,7 @@ export function getSlateNodeYLength(
   if (!yParentDelta || yOffset === undefined) return 1;
   const nextInsert = getNextDeltaInsert(yParentDelta, yOffset);
 
-  return nextInsert?.attributes?.[emptyTextAttribute] &&
+  return nextInsert?.attributes?.[EMPTY_TEXT_ATTRIBUTE] &&
     typeof nextInsert.insert === 'string'
     ? nextInsert.insert.length
     : 0;

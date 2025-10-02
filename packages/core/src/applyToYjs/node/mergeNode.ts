@@ -9,7 +9,7 @@ import {
   restoreStoredPositionsWithDeltaAbsolute,
 } from '../../utils/position';
 import { getProperties } from '../../utils/slate';
-import { emptyTextAttribute } from '../../utils/yjs';
+import { EMPTY_TEXT_ATTRIBUTE } from '../../utils/emptyText';
 
 export function mergeNode(
   sharedRoot: Y.XmlText,
@@ -54,7 +54,7 @@ export function mergeNode(
       | DeltaInsert
       | undefined;
 
-    if (prevTargetDeltaInsert?.attributes?.[emptyTextAttribute]) {
+    if (prevTargetDeltaInsert?.attributes?.[EMPTY_TEXT_ATTRIBUTE]) {
       parent.delete(prev.textRange.start, prevTargetDeltaInsert.insert.length);
     }
 

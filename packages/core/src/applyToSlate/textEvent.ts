@@ -5,7 +5,10 @@ import { deltaInsertToSlateNode } from '../utils/convert';
 import { getSlateNodeYLength, getSlatePath } from '../utils/location';
 import { deepEquals } from '../utils/object';
 import { getProperties } from '../utils/slate';
-import { emptyTextAttribute, omitEmptyTextAttribute } from '../utils/yjs';
+import {
+  EMPTY_TEXT_ATTRIBUTE,
+  omitEmptyTextAttribute,
+} from '../utils/emptyText';
 import { ClonedSharedRoot } from '../utils/ClonedSharedRoot';
 
 function* getSlateTargetsInRange(
@@ -66,7 +69,7 @@ function getInsertMethod(
   attributes: Record<string, unknown>
 ): InsertMethod {
   const properties = omitEmptyTextAttribute(attributes);
-  const isEmptyTextInsert = emptyTextAttribute in attributes;
+  const isEmptyTextInsert = EMPTY_TEXT_ATTRIBUTE in attributes;
   const children = Array.from(Node.children(editor, parentPath));
 
   let currentOffset = 0;
