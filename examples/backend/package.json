@@ -9,7 +9,7 @@
     "dev": "yarn build --watch --onSuccess \"yarn run start\""
   },
   "devDependencies": {
-    "tsup": "^5.12.1"
+    "tsup": "^8.5.0"
   },
   "dependencies": {
     "@hocuspocus/extension-logger": "^1.0.0-alpha.76",

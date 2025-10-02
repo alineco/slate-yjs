@@ -18,7 +18,7 @@
   "unpkg": "dist/index.global.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "yarn run tsup && tsc --emitDeclarationOnly",
+    "build": "yarn run tsup && tsc --build --force --emitDeclarationOnly",
     "dev": "yarn run tsup --watch"
   },
   "repository": {
@@ -29,8 +29,8 @@
   "devDependencies": {
     "slate": "^0.118.1",
     "slate-hyperscript": "^0.100.0",
-    "tsup": "^5.12.1",
-    "typescript": "^4.6.3",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3",
     "yjs": "^13.5.29"
   },
   "peerDependencies": {
