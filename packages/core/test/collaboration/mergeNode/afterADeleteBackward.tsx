@@ -37,5 +37,3 @@ export const expectedStoredPositions = {
 export function run(editor: Editor) {
   editor.deleteBackward('character');
 }
-
-export const skip = 'Stored positions in merged nodes are nullified';

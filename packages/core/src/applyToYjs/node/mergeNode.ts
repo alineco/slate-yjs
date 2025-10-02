@@ -68,8 +68,7 @@ export function mergeNode(
   const storedPositions = getStoredPositionsInDeltaAbsolute(
     sharedRoot,
     target.yTarget,
-    targetDelta,
-    deltaApplyYOffset
+    targetDelta
   );
 
   const applyDelta: Delta = [{ retain: deltaApplyYOffset }, ...clonedDelta];
