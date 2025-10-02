@@ -1,4 +1,4 @@
-import { InsertTextOperation, Node, Text } from 'slate';
+import { Ancestor, InsertTextOperation, Text } from 'slate';
 import type * as Y from 'yjs';
 import { getYTarget } from '../../utils/location';
 import { getProperties } from '../../utils/slate';
@@ -7,7 +7,7 @@ import { DeltaInsert } from '../../model/types';
 
 export function insertText(
   sharedRoot: Y.XmlText,
-  slateRoot: Node,
+  slateRoot: Ancestor,
   op: InsertTextOperation
 ): void {
   const {

@@ -1,4 +1,4 @@
-import { MoveNodeOperation, Node, Path, Text } from 'slate';
+import { Ancestor, MoveNodeOperation, Node, Path, Text } from 'slate';
 import * as Y from 'yjs';
 import { Delta } from '../../model/types';
 import { cloneDeltaDeep } from '../../utils/clone';
@@ -11,7 +11,7 @@ import {
 
 export function moveNode(
   sharedRoot: Y.XmlText,
-  slateRoot: Node,
+  slateRoot: Ancestor,
   op: MoveNodeOperation
 ): void {
   const newParentPath = Path.parent(op.newPath);

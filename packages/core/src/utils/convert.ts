@@ -1,4 +1,4 @@
-import { Element, Node, Text } from 'slate';
+import { Descendant, Element, Text } from 'slate';
 import * as Y from 'yjs';
 import { DeltaInsert, InsertDelta } from '../model/types';
 import { isInsertDeltaEmptyText, yTextToInsertDelta } from './delta';
@@ -34,7 +34,7 @@ export function yTextToSlateElement(
 export function deltaInsertToSlateNode(
   insert: DeltaInsert,
   options: DeltaInsertToSlateNodeOptions = {}
-): Node {
+): Descendant {
   if (typeof insert.insert === 'string') {
     if (isInsertDeltaEmptyText(insert)) {
       return { ...omitEmptyTextAttribute(insert.attributes), text: '' };
@@ -46,7 +46,7 @@ export function deltaInsertToSlateNode(
   return yTextToSlateElement(insert.insert, options);
 }
 
-export function slateNodesToInsertDelta(nodes: Node[]): InsertDelta {
+export function slateNodesToInsertDelta(nodes: Descendant[]): InsertDelta {
   return nodes.map((node) => {
     if (Text.isText(node)) {
       const { text } = node;

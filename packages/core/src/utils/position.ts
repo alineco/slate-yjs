@@ -1,4 +1,4 @@
-import { BasePoint, BaseRange, Node, Text } from 'slate';
+import { Ancestor, BasePoint, BaseRange, Node, Text } from 'slate';
 import * as Y from 'yjs';
 import { InsertDelta, RelativeRange, TextRange } from '../model/types';
 import { getInsertDeltaLength, yTextToInsertDelta } from './delta';
@@ -23,7 +23,7 @@ export type AbsolutePositionsMap = Record<
 
 export function slatePointToRelativePosition(
   sharedRoot: Y.XmlText,
-  slateRoot: Node,
+  slateRoot: Ancestor,
   point: BasePoint
 ): Y.RelativePosition {
   const { yTarget, yParent, textRange } = getYTarget(
@@ -48,7 +48,7 @@ export function slatePointToRelativePosition(
 
 export function absolutePositionToSlatePoint(
   sharedRoot: Y.XmlText,
-  slateRoot: Node,
+  slateRoot: Ancestor,
   { type, index, assoc }: Y.AbsolutePosition
 ): BasePoint | null {
   if (!(type instanceof Y.XmlText)) {
@@ -79,7 +79,7 @@ export function absolutePositionToSlatePoint(
 
 export function relativePositionToSlatePoint(
   sharedRoot: Y.XmlText,
-  slateRoot: Node,
+  slateRoot: Ancestor,
   pos: Y.RelativePosition
 ): BasePoint | null {
   if (!sharedRoot.doc) {
@@ -271,7 +271,7 @@ export function restoreStoredPositionsWithDeltaAbsolute(
 
 export function slateRangeToRelativeRange(
   sharedRoot: Y.XmlText,
-  slateRoot: Node,
+  slateRoot: Ancestor,
   range: BaseRange
 ): RelativeRange {
   return {
@@ -282,7 +282,7 @@ export function slateRangeToRelativeRange(
 
 export function relativeRangeToSlateRange(
   sharedRoot: Y.XmlText,
-  slateRoot: Node,
+  slateRoot: Ancestor,
   range: RelativeRange
 ): BaseRange | null {
   const anchor = relativePositionToSlatePoint(

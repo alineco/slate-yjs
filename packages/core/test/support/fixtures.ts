@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-/* eslint-disable global-require */
-/* eslint-disable import/no-dynamic-require */
-/* eslint-disable import/no-extraneous-dependencies */
 import { Editor, Point } from 'slate';
 import * as Y from 'yjs';
 import * as fs from 'fs';

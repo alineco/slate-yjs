@@ -1,7 +1,7 @@
 import { Editor, Element, Transforms } from 'slate';
 import * as Y from 'yjs';
-import { wait } from '../../../support/utils';
-import { slateNodesToInsertDelta, withYjs } from '../src';
+import { wait } from './support/utils';
+import { withYjs } from '../src';
 import { yTextFactory } from './yTextFactory';
 
 const INLINE_ELEMENTS = ['note-link', 'link'];

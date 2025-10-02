@@ -1,4 +1,4 @@
-import { Element, Node, Path, Text } from 'slate';
+import { Ancestor, Node, Path, Text } from 'slate';
 import * as Y from 'yjs';
 import { InsertDelta, YTarget } from '../model/types';
 import {
@@ -37,7 +37,7 @@ export function getSlateNodeYLength(
 }
 
 export function slatePathOffsetToYOffset(
-  element: Element,
+  element: Ancestor,
   pathOffset: number,
   options?: Omit<GetSlateNodeYLengthOptions, 'yOffset'>
 ) {
@@ -52,15 +52,11 @@ export function slatePathOffsetToYOffset(
 
 export function getYTarget(
   yRoot: Y.XmlText,
-  slateRoot: Node,
+  slateRoot: Ancestor,
   path: Path
 ): YTarget {
   if (path.length === 0) {
     throw new Error('Path has to a have a length >= 1');
-  }
-
-  if (Text.isText(slateRoot)) {
-    throw new Error('Cannot descent into slate text');
   }
 
   const [pathOffset, ...childPath] = path;
@@ -83,7 +79,7 @@ export function getYTarget(
 
   const yTarget = targetDelta[0]?.insert;
   if (childPath.length > 0) {
-    if (!(yTarget instanceof Y.XmlText)) {
+    if (!(yTarget instanceof Y.XmlText) || Text.isText(targetNode)) {
       throw new Error(
         "Path doesn't match yText, cannot descent into non-yText"
       );
@@ -108,7 +104,7 @@ export interface YOffsetToSlateOffsetsOptions {
 }
 
 export function yOffsetToSlateOffsets(
-  parent: Element,
+  parent: Ancestor,
   yOffset: number,
   options: YOffsetToSlateOffsetsOptions = {}
 ): [number, number] {

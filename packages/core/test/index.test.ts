@@ -1,8 +1,7 @@
-/* eslint-disable import/no-extraneous-dependencies */
 import { createEditor, Editor } from 'slate';
 import { describe, expect } from 'vitest';
 import * as Y from 'yjs';
-import { FixtureModule, fixtures } from '../../../support/fixtures';
+import { FixtureModule, fixtures } from './support/fixtures';
 import { yTextToSlateElement } from '../src';
 import { withTestingElements } from './withTestingElements';
 import { inspectYText } from './inspectYText';
@@ -12,6 +11,7 @@ import {
   setStoredPosition,
   slatePointToRelativePosition,
 } from '../src/utils/position';
+import { assertDocumentAttachment } from '../src/utils/yjs';
 
 async function normalizedSlateDoc(sharedRoot: Y.XmlText) {
   const editor = createEditor();
@@ -34,6 +34,7 @@ async function runCollaborationTest({ module }: { module: FixtureModule }) {
 
   // Setup 'local' editor
   const editor = await withTestingElements(input, { sharedType: yInput });
+  assertDocumentAttachment(editor.sharedRoot);
 
   // Keep the 'local' editor state before applying run.
   const baseState = Y.encodeStateAsUpdateV2(editor.sharedRoot.doc);

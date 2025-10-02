@@ -1,5 +1,5 @@
 /** @jsx jsx */
-import { jsx } from '../../../../../support/jsx';
+import { jsx } from '../../support/jsx';
 import { YjsEditor, yTextToSlateElement } from '../../../src';
 
 export const input = (

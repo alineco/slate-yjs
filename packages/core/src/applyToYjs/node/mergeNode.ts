@@ -1,4 +1,4 @@
-import { MergeNodeOperation, Node, Path, Text } from 'slate';
+import { Ancestor, MergeNodeOperation, Node, Path, Text } from 'slate';
 import * as Y from 'yjs';
 import { Delta, DeltaInsert } from '../../model/types';
 import { cloneDeltaDeep } from '../../utils/clone';
@@ -13,7 +13,7 @@ import { EMPTY_TEXT_ATTRIBUTE } from '../../utils/emptyText';
 
 export function mergeNode(
   sharedRoot: Y.XmlText,
-  slateRoot: Node,
+  slateRoot: Ancestor,
   op: MergeNodeOperation
 ): void {
   const target = getYTarget(sharedRoot, slateRoot, op.path);
@@ -29,8 +29,8 @@ export function mergeNode(
 
   if (!prev.yTarget || !target.yTarget) {
     const { yParent: parent, textRange, slateTarget } = target;
-    if (!slateTarget) {
-      throw new Error('Expected Slate target node for merge op.');
+    if (!slateTarget || !Text.isText(slateTarget)) {
+      throw new Error('Expected Slate target text node for merge op.');
     }
 
     const prevSibling = Node.get(slateRoot, Path.previous(op.path));

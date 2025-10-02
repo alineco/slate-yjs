@@ -1,4 +1,4 @@
-import { Node, SplitNodeOperation, Text } from 'slate';
+import { Ancestor, SplitNodeOperation, Text } from 'slate';
 import * as Y from 'yjs';
 import { cloneDeltaDeep } from '../../utils/clone';
 import { sliceInsertDelta, yTextToInsertDelta } from '../../utils/delta';
@@ -11,7 +11,7 @@ import { EMPTY_TEXT_ATTRIBUTE, insertEmptyText } from '../../utils/emptyText';
 
 export function splitNode(
   sharedRoot: Y.XmlText,
-  slateRoot: Node,
+  slateRoot: Ancestor,
   op: SplitNodeOperation
 ): void {
   const target = getYTarget(sharedRoot, slateRoot, op.path);

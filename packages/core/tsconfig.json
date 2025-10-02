@@ -7,5 +7,5 @@
     "declarationDir": "./dist",
     "composite": true
   },
-  "references": []
+  "references": [{ "path": "./test" }]
 }

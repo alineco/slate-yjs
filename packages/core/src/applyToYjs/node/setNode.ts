@@ -1,11 +1,11 @@
-import { Node, SetNodeOperation, Text } from 'slate';
+import { Ancestor, SetNodeOperation, Text } from 'slate';
 import * as Y from 'yjs';
 import { getYTarget } from '../../utils/location';
 import { insertEmptyText } from '../../utils/emptyText';
 
 export function setNode(
   sharedRoot: Y.XmlText,
-  slateRoot: Node,
+  slateRoot: Ancestor,
   op: SetNodeOperation
 ): void {
   const { yTarget, textRange, yParent, slateTarget } = getYTarget(
