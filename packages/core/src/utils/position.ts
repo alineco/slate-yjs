@@ -7,6 +7,20 @@ import { assertDocumentAttachment } from './yjs';
 
 export const STORED_POSITION_PREFIX = '__slateYjsStoredPosition_';
 
+/**
+ * Map from path string -> name -> absolute position.
+ *
+ * The path string represents the path of the shared type in which the positions
+ * are located relative to some arbitrary root shared type (not necessarily the
+ * shared root). A path string of '' denotes the root shared type, and 'x.y.z'
+ * denotes the z-th element of the y-th element of the x-th element of the root
+ * shared type.
+ */
+export type AbsolutePositionsMap = Record<
+  string,
+  Record<string, Y.AbsolutePosition>
+>;
+
 export function slatePointToRelativePosition(
   sharedRoot: Y.XmlText,
   slateRoot: Node,
@@ -144,7 +158,7 @@ function getAbsolutePositionsInTextRange(
   absolutePositions: Record<string, Y.AbsolutePosition>,
   yTarget: Y.XmlText,
   textRange?: TextRange
-) {
+): Record<string, Y.AbsolutePosition> {
   return Object.fromEntries(
     Object.entries(absolutePositions).filter(([, position]) => {
       if (position.type !== yTarget) {
@@ -166,8 +180,8 @@ function getAbsolutePositionsInYText(
   absolutePositions: Record<string, Y.AbsolutePosition>,
   yText: Y.XmlText,
   parentPath = ''
-): Record<string, Record<string, Y.AbsolutePosition>> {
-  const positions = {
+): AbsolutePositionsMap {
+  const positions: AbsolutePositionsMap = {
     [parentPath]: getAbsolutePositionsInTextRange(absolutePositions, yText),
   };
 
@@ -193,10 +207,10 @@ export function getStoredPositionsInDeltaAbsolute(
   yText: Y.XmlText,
   delta: InsertDelta,
   deltaOffset = 0
-) {
+): AbsolutePositionsMap {
   const absolutePositions = getStoredPositionsAbsolute(sharedRoot);
 
-  const positions = {
+  const positions: AbsolutePositionsMap = {
     '': getAbsolutePositionsInTextRange(absolutePositions, yText, {
       start: deltaOffset,
       end: deltaOffset + getInsertDeltaLength(delta),
@@ -218,7 +232,7 @@ export function getStoredPositionsInDeltaAbsolute(
 export function restoreStoredPositionsWithDeltaAbsolute(
   sharedRoot: Y.XmlText,
   yText: Y.XmlText,
-  absolutePositions: Record<string, Record<string, Y.AbsolutePosition>>,
+  absolutePositions: AbsolutePositionsMap,
   delta: InsertDelta,
   newDeltaOffset = 0,
   previousDeltaOffset = 0,
