@@ -1,5 +1,5 @@
 import { createEditor, Editor } from 'slate';
-import { describe, expect } from 'vitest';
+import { expect } from 'vitest';
 import * as Y from 'yjs';
 import { FixtureModule, fixtures } from './support/fixtures';
 import { yTextToSlateElement } from '../src';

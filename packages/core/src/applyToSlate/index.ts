@@ -12,13 +12,12 @@ import { ClonedSharedRoot } from '../utils/ClonedSharedRoot';
  * @param op
  */
 export function applyYjsEvent(
-  sharedRoot: Y.XmlText,
   prevSharedRoot: ClonedSharedRoot,
   editor: Editor,
   event: Y.YEvent<Y.XmlText>
 ) {
   if (event instanceof Y.YTextEvent) {
-    applyYTextEvent(sharedRoot, prevSharedRoot, editor, event);
+    applyYTextEvent(prevSharedRoot, editor, event);
     return;
   }
 
@@ -35,14 +34,13 @@ export function applyYjsEvent(
  * @param events
  */
 export function applyYjsEvents(
-  sharedRoot: Y.XmlText,
   prevSharedRoot: ClonedSharedRoot,
   editor: Editor,
   events: Y.YEvent<Y.XmlText>[]
 ) {
   Editor.withoutNormalizing(editor, () => {
     events.forEach((event) => {
-      applyYjsEvent(sharedRoot, prevSharedRoot, editor, event);
+      applyYjsEvent(prevSharedRoot, editor, event);
       prevSharedRoot.applyEvent(event);
     });
   });

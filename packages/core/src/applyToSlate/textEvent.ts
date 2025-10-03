@@ -239,7 +239,6 @@ function applyDelta(
 }
 
 export function applyYTextEvent(
-  sharedRoot: Y.XmlText,
   prevSharedRoot: ClonedSharedRoot,
   editor: Editor,
   event: Y.YTextEvent

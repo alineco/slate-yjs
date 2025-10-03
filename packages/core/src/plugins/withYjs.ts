@@ -187,7 +187,7 @@ export function withYjs<T extends Editor>(
             'Cannot apply remote events before prevSharedRoot is created'
           );
 
-        applyYjsEvents(sharedRoot, prevSharedRoot, e, events);
+        applyYjsEvents(prevSharedRoot, e, events);
       });
     });
   };
