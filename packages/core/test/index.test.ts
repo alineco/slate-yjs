@@ -3,8 +3,8 @@ import { describe, expect } from 'vitest';
 import * as Y from 'yjs';
 import { FixtureModule, fixtures } from './support/fixtures';
 import { yTextToSlateElement } from '../src';
-import { withTestingElements } from './withTestingElements';
-import { inspectYText } from './inspectYText';
+import { withTestingElements } from './support/withTestingElements';
+import { inspectYText } from './support/utils';
 import {
   getStoredPosition,
   relativePositionToSlatePoint,

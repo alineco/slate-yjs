@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { Ancestor, Descendant } from 'slate';
 import { jsx } from '../support/jsx';
-import { yTextFactory } from '../yTextFactory';
+import { yTextFactory } from '../support/utils';
 import { yOffsetToSlateOffsets } from '../../src/utils/location';
 import { yTextToInsertDelta } from '../../src/utils/delta';
 

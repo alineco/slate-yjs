@@ -1,9 +1,0 @@
-{
-  "extends": "../../../config/typescript/tsconfig.json",
-  "include": ["src/**/*", "test/**/*"],
-  "compilerOptions": {
-    "rootDirs": ["./src", "./test"],
-    "composite": true
-  },
-  "references": []
-}

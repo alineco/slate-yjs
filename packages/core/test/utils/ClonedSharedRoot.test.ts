@@ -1,6 +1,6 @@
 import * as Y from 'yjs';
 import { describe, it, expect, beforeEach } from 'vitest';
-import { inspectYText } from '../inspectYText';
+import { inspectYText } from '../support/utils';
 import { ClonedSharedRoot } from '../../src/utils/ClonedSharedRoot';
 
 describe('ClonedSharedRoot', () => {

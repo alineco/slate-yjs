@@ -1,8 +1,7 @@
 import { Editor, Element, Transforms } from 'slate';
 import * as Y from 'yjs';
-import { wait } from './support/utils';
-import { withYjs } from '../src';
-import { yTextFactory } from './yTextFactory';
+import { wait, yTextFactory } from './utils';
+import { withYjs } from '../../src';
 
 const INLINE_ELEMENTS = ['note-link', 'link'];
 
