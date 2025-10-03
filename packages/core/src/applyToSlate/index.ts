@@ -3,15 +3,7 @@ import * as Y from 'yjs';
 import { applyYTextEvent } from './textEvent';
 import { ClonedSharedRoot } from '../utils/ClonedSharedRoot';
 
-/**
- * TODO: Update this comment.
- * Translate a yjs event into slate operations. The editor state has to match the
- * yText state before the event occurred.
- *
- * @param sharedType
- * @param op
- */
-export function applyYjsEvent(
+function applyYjsEvent(
   prevSharedRoot: ClonedSharedRoot,
   editor: Editor,
   event: Y.YEvent<Y.XmlText>
@@ -25,13 +17,8 @@ export function applyYjsEvent(
 }
 
 /**
- * TODO: Update this comment.
- * Translates yjs events into slate operations and applies them to the editor. The
- * editor state has to match the yText state before the events occurred.
- *
- * @param sharedRoot
- * @param editor
- * @param events
+ * Applies Yjs events to the Slate editor. Assumes that the editor state matches
+ * prevSharedRoot.
  */
 export function applyYjsEvents(
   prevSharedRoot: ClonedSharedRoot,
