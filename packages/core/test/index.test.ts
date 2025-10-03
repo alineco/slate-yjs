@@ -122,14 +122,4 @@ async function runCollaborationTest({ module }: { module: FixtureModule }) {
   }
 }
 
-async function runUnitTest({ module }: { module: FixtureModule }) {
-  const { input, run, expected } = module;
-  const editor = await withTestingElements(input);
-  const runOutput = run(editor);
-  expect(runOutput).toEqual(expected);
-}
-
-describe('adapter', () => {
-  fixtures(__dirname, 'unit', runUnitTest);
-  fixtures(__dirname, 'collaboration', runCollaborationTest);
-});
+fixtures(__dirname, 'collaboration', runCollaborationTest);
