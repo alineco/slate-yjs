@@ -22,7 +22,6 @@ export function SimplePage() {
         name: 'slate-yjs-demo',
         onConnect: () => setConnected(true),
         onDisconnect: () => setConnected(false),
-        connect: false,
       }),
     []
   );
@@ -31,7 +30,6 @@ export function SimplePage() {
     if (connected) {
       return provider.disconnect();
     }
-
     provider.connect();
   }, [provider, connected]);
 
@@ -54,22 +52,26 @@ export function SimplePage() {
    * insertion of additional paragraphs at the start of the document.
    */
   useEffect(() => {
-    if (!YjsEditor.connected(editor)) {
-      const onSynced = () => {
+    const connectIfNeeded = () => {
+      if (!YjsEditor.connected(editor)) {
         YjsEditor.connect(editor);
+      }
+    };
+
+    if (provider.isSynced) {
+      connectIfNeeded();
+    } else {
+      const onSynced = () => {
+        connectIfNeeded();
         provider.off('synced', onSynced);
       };
+
       provider.on('synced', onSynced);
       return () => {
         provider.off('synced', onSynced);
       };
     }
   }, [provider, editor]);
-
-  useEffect(() => {
-    provider.connect();
-    return () => provider.disconnect();
-  }, [provider]);
 
   return (
     <div className="flex justify-center my-32 mx-10">

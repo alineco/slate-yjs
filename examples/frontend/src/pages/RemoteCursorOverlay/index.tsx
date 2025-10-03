@@ -25,7 +25,6 @@ export function RemoteCursorsOverlayPage() {
         name: 'slate-yjs-demo',
         onConnect: () => setConnected(true),
         onDisconnect: () => setConnected(false),
-        connect: false,
       }),
     []
   );
@@ -40,6 +39,8 @@ export function RemoteCursorsOverlayPage() {
 
   const editor = useMemo(() => {
     const sharedType = provider.document.get('content', Y.XmlText) as Y.XmlText;
+
+    if (!provider.awareness) throw new Error('Awareness missing on provider');
 
     return withMarkdown(
       withNormalize(
@@ -63,22 +64,26 @@ export function RemoteCursorsOverlayPage() {
    * insertion of additional paragraphs at the start of the document.
    */
   useEffect(() => {
-    if (!YjsEditor.connected(editor)) {
-      const onSynced = () => {
+    const connectIfNeeded = () => {
+      if (!YjsEditor.connected(editor)) {
         YjsEditor.connect(editor);
+      }
+    };
+
+    if (provider.isSynced) {
+      connectIfNeeded();
+    } else {
+      const onSynced = () => {
+        connectIfNeeded();
         provider.off('synced', onSynced);
       };
+
       provider.on('synced', onSynced);
       return () => {
         provider.off('synced', onSynced);
       };
     }
   }, [provider, editor]);
-
-  useEffect(() => {
-    provider.connect();
-    return () => provider.disconnect();
-  }, [provider]);
 
   return (
     <React.Fragment>

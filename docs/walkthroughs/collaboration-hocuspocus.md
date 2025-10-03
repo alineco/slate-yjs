@@ -54,7 +54,6 @@ export function Editor() {
       new HocuspocusProvider({
         url: 'ws://127.0.0.1:1234',
         name: 'slate-yjs-demo',
-        connect: false,
       }),
     []
   );
@@ -89,22 +88,26 @@ export function Editor() {
    * insertion of additional paragraphs at the start of the document.
    */
   useEffect(() => {
-    if (!YjsEditor.connected(editor)) {
-      const onSynced = () => {
+    const connectIfNeeded = () => {
+      if (!YjsEditor.connected(editor)) {
         YjsEditor.connect(editor);
+      }
+    };
+
+    if (provider.isSynced) {
+      connectIfNeeded();
+    } else {
+      const onSynced = () => {
+        connectIfNeeded();
         provider.off('synced', onSynced);
       };
+
       provider.on('synced', onSynced);
       return () => {
         provider.off('synced', onSynced);
       };
     }
   }, [provider, editor]);
-
-  useEffect(() => {
-    provider.connect();
-    return () => provider.disconnect();
-  }, [provider]);
 
   return (
     <Slate initialValue={value} onChange={setValue} editor={editor}>

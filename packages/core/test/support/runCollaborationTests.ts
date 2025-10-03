@@ -1,17 +1,17 @@
 import { createEditor, Editor } from 'slate';
-import { expect } from 'vitest';
+import { expect, it } from 'vitest';
 import * as Y from 'yjs';
-import { FixtureModule, fixtures } from './support/fixtures';
-import { yTextToSlateElement } from '../src';
-import { withTestingElements } from './support/withTestingElements';
-import { inspectYText } from './support/utils';
+import { FixtureModule, fixtures } from './fixtures';
+import { yTextToSlateElement } from '../../src';
+import { withTestingElements } from './withTestingElements';
+import { inspectYText } from './utils';
 import {
   getStoredPosition,
   relativePositionToSlatePoint,
   setStoredPosition,
   slatePointToRelativePosition,
-} from '../src/utils/position';
-import { assertDocumentAttachment } from '../src/utils/yjs';
+} from '../../src/utils/position';
+import { assertDocumentAttachment } from '../../src/utils/yjs';
 
 async function normalizedSlateDoc(sharedRoot: Y.XmlText) {
   const editor = createEditor();
@@ -122,4 +122,13 @@ async function runCollaborationTest({ module }: { module: FixtureModule }) {
   }
 }
 
-fixtures(__dirname, 'collaboration', runCollaborationTest);
+export function runCollaborationTests({
+  expectOldest = false,
+}: { expectOldest?: boolean } = {}) {
+  it('uses the correct version of Yjs', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((Y as any).version).toBe(expectOldest ? 'oldest' : undefined);
+  });
+
+  fixtures(__dirname, '../collaboration', runCollaborationTest);
+}

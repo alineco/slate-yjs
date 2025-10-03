@@ -80,7 +80,6 @@ export function RemoteCursorDecorations() {
         name: 'slate-yjs-demo',
         onConnect: () => setConnected(true),
         onDisconnect: () => setConnected(false),
-        connect: false,
       }),
     []
   );
@@ -95,6 +94,8 @@ export function RemoteCursorDecorations() {
 
   const editor = useMemo(() => {
     const sharedType = provider.document.get('content', Y.XmlText) as Y.XmlText;
+
+    if (!provider.awareness) throw new Error('Awareness missing on provider');
 
     return withMarkdown(
       withNormalize(
@@ -118,22 +119,26 @@ export function RemoteCursorDecorations() {
    * insertion of additional paragraphs at the start of the document.
    */
   useEffect(() => {
-    if (!YjsEditor.connected(editor)) {
-      const onSynced = () => {
+    const connectIfNeeded = () => {
+      if (!YjsEditor.connected(editor)) {
         YjsEditor.connect(editor);
+      }
+    };
+
+    if (provider.isSynced) {
+      connectIfNeeded();
+    } else {
+      const onSynced = () => {
+        connectIfNeeded();
         provider.off('synced', onSynced);
       };
+
       provider.on('synced', onSynced);
       return () => {
         provider.off('synced', onSynced);
       };
     }
   }, [provider, editor]);
-
-  useEffect(() => {
-    provider.connect();
-    return () => provider.disconnect();
-  }, [provider]);
 
   return (
     <div className="flex justify-center my-32 mx-10">

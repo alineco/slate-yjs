@@ -31,11 +31,12 @@
     "slate-hyperscript": "^0.100.0",
     "tsup": "^8.5.0",
     "typescript": "^5.9.3",
-    "yjs": "^13.5.29"
+    "yjs": "^13.6.27",
+    "yjsOldestSupported": "npm:yjs@^13.5.29"
   },
   "peerDependencies": {
     "slate": ">=0.70.0",
-    "yjs": "^13.5.29"
+    "yjs": ">=13.5.29"
   },
   "bugs": {
     "url": "https://github.com/BitPhinix/slate-yjs/issues"
