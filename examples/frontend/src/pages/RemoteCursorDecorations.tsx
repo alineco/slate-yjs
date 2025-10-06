@@ -62,7 +62,7 @@ function DecoratedEditable() {
   const decorate = useDecorateRemoteCursors();
   return (
     <CustomEditable
-      className="max-w-4xl w-full flex-col break-words"
+      className="max-w-4xl w-full flex-col break-words outline-none"
       decorate={decorate}
       renderLeaf={renderDecoratedLeaf}
     />
