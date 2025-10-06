@@ -1,5 +1,5 @@
 import * as Y from 'yjs';
-import { DeltaInsert } from '../model/types';
+import { DeltaInsert, InsertDelta } from '../model/types';
 
 /**
  * Represent empty text nodes using a character with a special attribute, since
@@ -35,4 +35,14 @@ export function omitEmptyTextAttribute<
   return Object.fromEntries(
     Object.entries(attributes).filter(([k]) => k !== EMPTY_TEXT_ATTRIBUTE)
   ) as T;
+}
+
+export function isDeltaInsertEmptyText({
+  attributes = {},
+}: DeltaInsert): boolean {
+  return EMPTY_TEXT_ATTRIBUTE in attributes;
+}
+
+export function isInsertDeltaEmptyText([deltaInsert]: InsertDelta): boolean {
+  return !!deltaInsert && isDeltaInsertEmptyText(deltaInsert);
 }

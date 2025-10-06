@@ -15,10 +15,12 @@ export const input = (
 export const expected = (
   <editor>
     <unstyled>
+      <text />
       <note-link entityId="myEntity">
         Hello world
         <cursor />!
       </note-link>
+      <text />
     </unstyled>
   </editor>
 );

@@ -9,7 +9,9 @@ export const input = (
       <cursor />
       slate-yjs
       <link url="https://slate-yjs.dev">slate-yjs</link>
+      <text />
       <link url="https://slate-yjs.dev">slate-yjs</link>
+      <text />
     </unstyled>
   </editor>
 );
@@ -21,7 +23,9 @@ export const expected = (
       <cursor />
       slate-yjs
       <link url="https://slate-yjs.dev">slate-yjs</link>
+      <text />
       <link url="https://slate-yjs.dev">slate-yjs</link>
+      <text />
     </unstyled>
   </editor>
 );

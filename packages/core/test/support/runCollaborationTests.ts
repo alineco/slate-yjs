@@ -4,7 +4,7 @@ import * as Y from 'yjs';
 import { FixtureModule, fixtures } from './fixtures';
 import { yTextToSlateElement } from '../../src';
 import { withTestingElements } from './withTestingElements';
-import { inspectYText } from './utils';
+import { inspectYText, yTextFactory } from './utils';
 import {
   getStoredPosition,
   relativePositionToSlatePoint,
@@ -28,7 +28,7 @@ async function runCollaborationTest({ module }: { module: FixtureModule }) {
     inputStoredPositions = {},
     run,
     expected,
-    yExpected,
+    yExpected = yTextFactory(expected),
     expectedStoredPositions = {},
   } = module;
 
@@ -60,15 +60,6 @@ async function runCollaborationTest({ module }: { module: FixtureModule }) {
   run(editor);
   editor.onChange();
 
-  if (yExpected) {
-    expect(inspectYText(editor.sharedRoot)).toEqual(inspectYText(yExpected));
-  } else {
-    // Editor state after run should match shared root.
-    expect(await normalizedSlateDoc(editor.sharedRoot)).toEqual(
-      editor.children
-    );
-  }
-
   // Verify that stored positions are updated correctly
   const actualStoredPositions = Object.fromEntries(
     Object.keys(inputStoredPositions).map((key) => {
@@ -96,29 +87,15 @@ async function runCollaborationTest({ module }: { module: FixtureModule }) {
 
   // Verify editor is in expected state
   const expectedEditor = await withTestingElements(expected);
-  Editor.normalize(expectedEditor, { force: true });
   expect(editor.children).toEqual(expectedEditor.children);
   if (expectedEditor.selection) {
     expect(editor.selection).toEqual(expectedEditor.selection);
   }
+  expect(inspectYText(editor.sharedRoot)).toEqual(inspectYText(yExpected));
 
   // Verify remote and editor state are equal
-  if (yExpected) {
-    expect(inspectYText(remote.sharedRoot)).toEqual(inspectYText(yExpected));
-    expect(editor.children).toEqual(remote.children);
-    expect(inspectYText(editor.sharedRoot)).toEqual(inspectYText(yExpected));
-  } else {
-    expect(await normalizedSlateDoc(editor.sharedRoot)).toEqual(
-      editor.children
-    );
-    expect(await normalizedSlateDoc(remote.sharedRoot)).toEqual(
-      remote.children
-    );
-    expect(inspectYText(remote.sharedRoot)).toEqual(
-      inspectYText(editor.sharedRoot)
-    );
-    expect(remote.children).toEqual(editor.children);
-  }
+  expect(editor.children).toEqual(remote.children);
+  expect(inspectYText(remote.sharedRoot)).toEqual(inspectYText(yExpected));
 
   // Verify that prevSharedRoot and sharedRoot are equal
   expect(editor.prevSharedRoot && inspectYText(editor.prevSharedRoot)).toEqual(

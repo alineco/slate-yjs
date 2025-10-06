@@ -2,8 +2,7 @@ import { Ancestor, InsertTextOperation, Text } from 'slate';
 import type * as Y from 'yjs';
 import { getYTarget } from '../../utils/location';
 import { getProperties } from '../../utils/slate';
-import { EMPTY_TEXT_ATTRIBUTE } from '../../utils/emptyText';
-import { DeltaInsert } from '../../model/types';
+import { isInsertDeltaEmptyText } from '../../utils/emptyText';
 
 export function insertText(
   sharedRoot: Y.XmlText,
@@ -21,10 +20,8 @@ export function insertText(
     throw new Error('Cannot insert text into non-text node');
   }
 
-  const targetDeltaInsert = targetDelta[0] as DeltaInsert | undefined;
-
-  if (targetDeltaInsert?.attributes?.[EMPTY_TEXT_ATTRIBUTE]) {
-    target.delete(textRange.start, targetDeltaInsert.insert.length);
+  if (isInsertDeltaEmptyText(targetDelta)) {
+    target.delete(textRange.start, targetDelta[0].insert.length);
   }
 
   target.insert(

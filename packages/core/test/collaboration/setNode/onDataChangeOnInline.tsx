@@ -16,10 +16,12 @@ export const input = (
 export const expected = (
   <editor>
     <unstyled>
+      <text />
       <note-link noteId="note2">
         Meeting notes
         <cursor />
       </note-link>
+      <text />
     </unstyled>
   </editor>
 );

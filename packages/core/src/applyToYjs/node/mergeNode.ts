@@ -1,6 +1,6 @@
 import { Ancestor, MergeNodeOperation, Node, Path, Text } from 'slate';
 import * as Y from 'yjs';
-import { Delta, DeltaInsert } from '../../model/types';
+import { Delta } from '../../model/types';
 import { cloneDeltaDeep } from '../../utils/clone';
 import { yTextToInsertDelta } from '../../utils/delta';
 import { getYTarget } from '../../utils/location';
@@ -9,7 +9,7 @@ import {
   restoreStoredPositionsWithDeltaAbsolute,
 } from '../../utils/position';
 import { getProperties } from '../../utils/slate';
-import { EMPTY_TEXT_ATTRIBUTE } from '../../utils/emptyText';
+import { isInsertDeltaEmptyText } from '../../utils/emptyText';
 
 export function mergeNode(
   sharedRoot: Y.XmlText,
@@ -38,6 +38,14 @@ export function mergeNode(
       throw new Error('Path points to Y.Text but not a Slate text node.');
     }
 
+    if (isInsertDeltaEmptyText(target.targetDelta)) {
+      parent.delete(
+        target.textRange.start,
+        target.targetDelta[0].insert.length
+      );
+      return;
+    }
+
     const targetProps = getProperties(slateTarget);
     const prevSiblingProps = getProperties(prevSibling);
     const unsetProps = Object.keys(targetProps).reduce((acc, key) => {
@@ -50,12 +58,8 @@ export function mergeNode(
       ...prevSiblingProps,
     });
 
-    const prevTargetDeltaInsert = prev.targetDelta[0] as
-      | DeltaInsert
-      | undefined;
-
-    if (prevTargetDeltaInsert?.attributes?.[EMPTY_TEXT_ATTRIBUTE]) {
-      parent.delete(prev.textRange.start, prevTargetDeltaInsert.insert.length);
+    if (isInsertDeltaEmptyText(prev.targetDelta)) {
+      parent.delete(prev.textRange.start, prev.targetDelta[0].insert.length);
     }
 
     return;

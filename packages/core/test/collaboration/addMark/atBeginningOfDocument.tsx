@@ -19,9 +19,12 @@ export const inputStoredPositions = {
 export const expected = (
   <editor>
     <unstyled>
-      <anchor />
-      <text bold>Hello</text>
-      <focus /> world!
+      <text bold>
+        <anchor />
+        Hello
+        <focus />
+      </text>{' '}
+      world!
     </unstyled>
   </editor>
 );

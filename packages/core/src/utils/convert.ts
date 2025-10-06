@@ -1,9 +1,13 @@
 import { Descendant, Element, Text } from 'slate';
 import * as Y from 'yjs';
 import { DeltaInsert, InsertDelta } from '../model/types';
-import { isInsertDeltaEmptyText, yTextToInsertDelta } from './delta';
+import { yTextToInsertDelta } from './delta';
 import { getProperties } from './slate';
-import { getEmptyTextInsert, omitEmptyTextAttribute } from './emptyText';
+import {
+  getEmptyTextInsert,
+  isDeltaInsertEmptyText,
+  omitEmptyTextAttribute,
+} from './emptyText';
 
 export interface DeltaInsertToSlateNodeOptions {
   /**
@@ -36,7 +40,7 @@ export function deltaInsertToSlateNode(
   options: DeltaInsertToSlateNodeOptions = {}
 ): Descendant {
   if (typeof insert.insert === 'string') {
-    if (isInsertDeltaEmptyText(insert)) {
+    if (isDeltaInsertEmptyText(insert)) {
       return { ...omitEmptyTextAttribute(insert.attributes), text: '' };
     }
 

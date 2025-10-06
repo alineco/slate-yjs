@@ -3,6 +3,7 @@ import { Ancestor, Descendant } from 'slate';
 import { DeltaInsert } from '../../src/model/types';
 import { yTextToInsertDelta } from '../../src/utils/delta';
 import { slateNodesToInsertDelta } from '../../src';
+import { STORED_POSITION_PREFIX } from '../../src/utils/position';
 
 interface RecursiveDeltaInsert extends Omit<DeltaInsert, 'insert'> {
   insert: string | RecursiveInsertDelta | RecursiveDeltaInsert;
@@ -19,7 +20,14 @@ export function inspectYText(yText: Y.XmlText): RecursiveDeltaInsert {
 
   const attributes = yText.getAttributes();
 
-  return { attributes, insert: mappedDelta };
+  // Do not include stored position attributes
+  const filteredAttributes = Object.fromEntries(
+    Object.entries(attributes).filter(
+      ([key]) => !key.startsWith(STORED_POSITION_PREFIX)
+    )
+  );
+
+  return { attributes: filteredAttributes, insert: mappedDelta };
 }
 
 export function yTextFactory(

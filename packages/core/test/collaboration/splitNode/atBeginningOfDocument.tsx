@@ -19,7 +19,9 @@ export const inputStoredPositions = {
 
 export const expected = (
   <editor>
-    <unstyled id="block1" />
+    <unstyled id="block1">
+      <text />
+    </unstyled>
     <unstyled id="block1">
       <cursor />
       Hello world!
