@@ -100,7 +100,7 @@ function applyDelta(
 }
 
 export function applyYTextEvent(
-  prevSharedRoot: ClonedSharedRoot,
+  clonedSharedRoot: ClonedSharedRoot,
   editor: Editor,
   event: Y.YTextEvent
 ) {
@@ -111,8 +111,12 @@ export function applyYTextEvent(
     throw new Error('Unexpected target node type');
   }
 
-  const prevTarget = prevSharedRoot.getCloned(newTarget);
-  const slatePath = getSlatePath(prevSharedRoot.sharedRoot, editor, prevTarget);
+  const prevTarget = clonedSharedRoot.getCloned(newTarget);
+  const slatePath = getSlatePath(
+    clonedSharedRoot.sharedRoot,
+    editor,
+    prevTarget
+  );
 
   const keyChanges = Array.from(changes.keys.entries());
   if (slatePath.length > 0 && keyChanges.length > 0) {

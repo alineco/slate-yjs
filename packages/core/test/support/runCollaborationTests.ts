@@ -90,7 +90,6 @@ async function runCollaborationTest({ module }: { module: FixtureModule }) {
   const remoteDoc = new Y.Doc();
   Y.applyUpdateV2(remoteDoc, baseState);
   const remote = await withTestingElements(createEditor(), { doc: remoteDoc });
-  // const remoteNormalizeOps = trackNormalizeOps(remote);
 
   // Apply changes from 'run'
   Y.applyUpdateV2(remoteDoc, Y.encodeStateAsUpdateV2(editor.sharedRoot.doc));
@@ -120,6 +119,15 @@ async function runCollaborationTest({ module }: { module: FixtureModule }) {
     );
     expect(remote.children).toEqual(editor.children);
   }
+
+  // Verify that prevSharedRoot and sharedRoot are equal
+  expect(editor.prevSharedRoot && inspectYText(editor.prevSharedRoot)).toEqual(
+    inspectYText(editor.sharedRoot)
+  );
+
+  expect(remote.prevSharedRoot && inspectYText(remote.prevSharedRoot)).toEqual(
+    inspectYText(remote.sharedRoot)
+  );
 }
 
 export function runCollaborationTests({
