@@ -16,6 +16,8 @@ export const inputStoredPositions = {
   after: { path: [0, 0], offset: 7 },
 };
 
+export const initialRemoteSelection = inputStoredPositions.after;
+
 export const expected = (
   <editor>
     <unstyled>
@@ -25,20 +27,13 @@ export const expected = (
   </editor>
 );
 
-// TODO: This export is unused
-export const inputRemoteEditor = (
-  <editor>
-    <unstyled>
-      Hello !<cursor />
-    </unstyled>
-  </editor>
-);
-
 export const expectedStoredPositions = {
   before: { path: [0, 0], offset: 5 },
   at: { path: [0, 0], offset: 11 },
   after: { path: [0, 0], offset: 12 },
 };
+
+export const expectedRemoteSelection = expectedStoredPositions.after;
 
 export function run(editor: Editor) {
   editor.insertText('world');

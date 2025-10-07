@@ -24,6 +24,9 @@ const { runCollaborationTests } = await import(
   './support/runCollaborationTests'
 );
 
-describe('oldest supported yjs', async () => {
+const skip =
+  process.env.YJS_VERSIONS && !process.env.YJS_VERSIONS.includes('oldest');
+
+describe.skipIf(skip)('oldest supported yjs', async () => {
   runCollaborationTests({ expectOldest: true });
 });

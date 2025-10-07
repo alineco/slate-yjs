@@ -27,7 +27,11 @@ export const expected = (
 );
 
 export const expectedStoredPositions = {
-  removed: null,
+  /**
+   * For some reason, removed is only this point when withYHistory is used.
+   * Otherwise, removed becomes null.
+   */
+  removed: { path: [0, 0], offset: 0 },
   after: { path: [0, 0], offset: 0 },
 };
 

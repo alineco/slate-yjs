@@ -1,4 +1,4 @@
-import { createEditor, Editor } from 'slate';
+import { createEditor, Editor, Point } from 'slate';
 import { expect, it } from 'vitest';
 import * as Y from 'yjs';
 import { FixtureModule, fixtures } from './fixtures';
@@ -26,10 +26,12 @@ async function runCollaborationTest({ module }: { module: FixtureModule }) {
     input,
     yInput,
     inputStoredPositions = {},
+    initialRemoteSelection,
     run,
     expected,
     yExpected = yTextFactory(expected),
     expectedStoredPositions = {},
+    expectedRemoteSelection,
   } = module;
 
   // Setup 'local' editor
@@ -60,6 +62,14 @@ async function runCollaborationTest({ module }: { module: FixtureModule }) {
   run(editor);
   editor.onChange();
 
+  // Verify editor is in expected state
+  const expectedEditor = await withTestingElements(expected);
+  expect(editor.children).toEqual(expectedEditor.children);
+  if (expectedEditor.selection) {
+    expect(editor.selection).toEqual(expectedEditor.selection);
+  }
+  expect(inspectYText(editor.sharedRoot)).toEqual(inspectYText(yExpected));
+
   // Verify that stored positions are updated correctly
   const actualStoredPositions = Object.fromEntries(
     Object.keys(inputStoredPositions).map((key) => {
@@ -81,17 +91,15 @@ async function runCollaborationTest({ module }: { module: FixtureModule }) {
   const remoteDoc = new Y.Doc();
   Y.applyUpdateV2(remoteDoc, baseState);
   const remote = await withTestingElements(createEditor(), { doc: remoteDoc });
+  if (initialRemoteSelection) {
+    remote.selection = Point.isPoint(initialRemoteSelection)
+      ? { anchor: initialRemoteSelection, focus: initialRemoteSelection }
+      : initialRemoteSelection;
+  }
+  remote.onChange();
 
   // Apply changes from 'run'
   Y.applyUpdateV2(remoteDoc, Y.encodeStateAsUpdateV2(editor.sharedRoot.doc));
-
-  // Verify editor is in expected state
-  const expectedEditor = await withTestingElements(expected);
-  expect(editor.children).toEqual(expectedEditor.children);
-  if (expectedEditor.selection) {
-    expect(editor.selection).toEqual(expectedEditor.selection);
-  }
-  expect(inspectYText(editor.sharedRoot)).toEqual(inspectYText(yExpected));
 
   // Verify remote and editor state are equal
   expect(editor.children).toEqual(remote.children);
@@ -105,6 +113,14 @@ async function runCollaborationTest({ module }: { module: FixtureModule }) {
   expect(remote.prevSharedRoot && inspectYText(remote.prevSharedRoot)).toEqual(
     inspectYText(remote.sharedRoot)
   );
+
+  if (initialRemoteSelection) {
+    expect(remote.selection).toEqual(
+      Point.isPoint(expectedRemoteSelection)
+        ? { anchor: expectedRemoteSelection, focus: expectedRemoteSelection }
+        : expectedRemoteSelection ?? null
+    );
+  }
 }
 
 export function runCollaborationTests({

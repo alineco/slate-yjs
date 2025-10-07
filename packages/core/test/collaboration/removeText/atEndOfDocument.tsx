@@ -13,6 +13,8 @@ export const input = (
   </editor>
 );
 
+export const initialRemoteSelection = { path: [0, 1], offset: 0 };
+
 export const expected = (
   <editor>
     <unstyled>Hello world!</unstyled>
@@ -22,16 +24,7 @@ export const expected = (
   </editor>
 );
 
-// TODO: This export is unused
-export const inputRemoteEditor = (
-  <editor>
-    <unstyled>Hello world!</unstyled>
-    <unstyled>
-      <cursor />
-      Welcome to slate-yjs!
-    </unstyled>
-  </editor>
-);
+export const expectedRemoteSelection = { path: [0, 1], offset: 0 };
 
 export function run(editor: Editor) {
   Transforms.delete(editor);

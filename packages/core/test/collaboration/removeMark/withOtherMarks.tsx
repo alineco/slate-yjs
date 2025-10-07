@@ -14,6 +14,8 @@ export const input = (
   </editor>
 );
 
+export const initialRemoteSelection = { path: [0, 0], offset: 5 };
+
 export const expected = (
   <editor>
     <unstyled>
@@ -31,17 +33,7 @@ export const expected = (
   </editor>
 );
 
-// TODO: This export is unused
-export const inputRemoteEditor = (
-  <editor>
-    <unstyled>
-      <text bold italic>
-        Hello
-        <cursor /> world!
-      </text>
-    </unstyled>
-  </editor>
-);
+export const expectedRemoteSelection = { path: [0, 1], offset: 0 };
 
 export function run(editor: Editor) {
   editor.removeMark('bold');

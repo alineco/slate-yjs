@@ -1,7 +1,7 @@
 import { Editor, Element, Transforms } from 'slate';
 import * as Y from 'yjs';
 import { wait, yTextFactory } from './utils';
-import { withYjs } from '../../src';
+import { withYHistory, withYjs } from '../../src';
 
 const INLINE_ELEMENTS = ['note-link', 'link'];
 
@@ -40,7 +40,7 @@ export async function withTestingElements(
   editor.isInline = (element) =>
     INLINE_ELEMENTS.includes(element.type as string) || isInline(element);
 
-  const e = withYjs(editor, sharedType, { autoConnect: true });
+  const e = withYHistory(withYjs(editor, sharedType, { autoConnect: true }));
 
   // Wait for editor to be initialized
   await wait();

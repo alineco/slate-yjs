@@ -1,4 +1,4 @@
-import { Editor, Point } from 'slate';
+import { Editor, Point, Range } from 'slate';
 import * as Y from 'yjs';
 import * as fs from 'fs';
 import { basename, extname, resolve } from 'path';
@@ -9,9 +9,11 @@ export interface FixtureModule {
   input: Editor;
   yInput?: Y.XmlText;
   inputStoredPositions?: Record<string, Point>;
+  initialRemoteSelection?: Range | Point;
   expected: Editor;
   yExpected?: Y.XmlText;
   expectedStoredPositions?: Record<string, Point | null>;
+  expectedRemoteSelection?: Range | Point;
   run: (e: Editor) => void;
   skip?: string | (() => string | null);
 }
