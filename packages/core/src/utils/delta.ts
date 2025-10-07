@@ -1,6 +1,12 @@
 import * as Y from 'yjs';
-import { DeltaInsert, InsertDelta } from '../model/types';
+import { ChangeType, Delta, DeltaInsert, InsertDelta } from '../model/types';
 import { deepEquals } from './object';
+
+export function getChangeType(delta: Delta[number]): ChangeType {
+  if ('insert' in delta) return 'insert';
+  if ('delete' in delta) return 'delete';
+  return 'retain';
+}
 
 export function normalizeInsertDelta(delta: InsertDelta): InsertDelta {
   const normalized: InsertDelta = [];

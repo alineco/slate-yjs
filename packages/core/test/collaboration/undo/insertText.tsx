@@ -33,6 +33,3 @@ export function run(editor: YHistoryEditor) {
   editor.insertText('world!');
   editor.undo();
 }
-
-export const skip =
-  'The remote cursor is placed at the end of the previous block';

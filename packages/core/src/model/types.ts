@@ -1,6 +1,7 @@
 import type { Editor, Element, Node } from 'slate';
 import type * as Y from 'yjs';
 
+export type ChangeType = 'insert' | 'delete' | 'retain';
 export type DeltaAttributes = {
   retain: number;
   attributes: Record<string, unknown>;

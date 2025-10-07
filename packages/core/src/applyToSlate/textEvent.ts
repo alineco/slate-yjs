@@ -5,7 +5,7 @@ import { deltaInsertToSlateNode } from '../utils/convert';
 import { getSlatePath } from '../utils/location';
 import { omitEmptyTextAttribute } from '../utils/emptyText';
 import { ClonedSharedRoot } from '../utils/ClonedSharedRoot';
-import { yTextToInsertDelta } from '../utils/delta';
+import { getChangeType, yTextToInsertDelta } from '../utils/delta';
 import { getSlateTargetsInRange } from './getSlateTargetsInRange';
 import { getInsertMethod } from './getInsertMethod';
 
@@ -40,63 +40,79 @@ function applyDelta(
       )
     ).reverse();
 
-  // Apply changes in reverse order to avoid path changes.
-  delta
+  const sortedReversedDelta = delta
     .slice()
-    .reverse()
-    .forEach((change) => {
-      if ('retain' in change) {
-        yOffset -= change.retain;
+    /**
+     * If the last child of a node is removed before a new node is inserted to
+     * replace it, this can result in the Slate selection being placed at the
+     * end of the previous text node instead of remaining in the current
+     * node. To avoid this, flip the order of insertions and deletions so that
+     * insertions are always performed first, while preserving the order of non-
+     * insert/delete pairs.
+     */
+    .sort((a, b) => {
+      const aType = getChangeType(a);
+      const bType = getChangeType(b);
+      if (aType === 'insert' && bType === 'delete') return 1;
+      if (aType === 'delete' && bType === 'insert') return -1;
+      return 0;
+    })
+    // Apply changes in reverse order to avoid path changes
+    .reverse();
 
-        if ('attributes' in change) {
-          const newProperties = omitEmptyTextAttribute(change.attributes);
+  sortedReversedDelta.forEach((change) => {
+    if ('retain' in change) {
+      yOffset -= change.retain;
 
-          for (const at of getTargetsInRange(change.retain)) {
-            if (Path.isPath(at)) {
-              Transforms.setNodes(editor, newProperties, { at });
-            } else {
-              Transforms.setNodes(editor, newProperties, {
-                at,
-                match: Text.isText,
-                split: true,
-              });
-            }
+      if ('attributes' in change) {
+        const newProperties = omitEmptyTextAttribute(change.attributes);
+
+        for (const at of getTargetsInRange(change.retain)) {
+          if (Path.isPath(at)) {
+            Transforms.setNodes(editor, newProperties, { at });
+          } else {
+            Transforms.setNodes(editor, newProperties, {
+              at,
+              match: Text.isText,
+              split: true,
+            });
           }
         }
       }
+    }
 
-      if ('delete' in change) {
-        yOffset -= change.delete;
+    if ('delete' in change) {
+      yOffset -= change.delete;
 
-        for (const at of getTargetsInRange(change.delete)) {
-          if (Path.isPath(at)) {
-            Transforms.removeNodes(editor, { at });
-          } else {
-            Transforms.delete(editor, { at });
-          }
+      for (const at of getTargetsInRange(change.delete)) {
+        if (Path.isPath(at)) {
+          Transforms.removeNodes(editor, { at });
+        } else {
+          Transforms.delete(editor, { at });
         }
+      }
+      return;
+    }
+
+    if ('insert' in change) {
+      const { insert, attributes = {} } = change;
+      const { method, at } = getInsertMethod(
+        editor,
+        parentPath,
+        yParentDelta,
+        yOffset,
+        attributes
+      );
+
+      if (typeof insert === 'string' && method === 'insertText') {
+        Transforms.insertText(editor, insert, { at });
         return;
       }
 
-      if ('insert' in change) {
-        const { insert, attributes = {} } = change;
-        const { method, at } = getInsertMethod(
-          editor,
-          parentPath,
-          yParentDelta,
-          yOffset,
-          attributes
-        );
-
-        if (typeof insert === 'string' && method === 'insertText') {
-          Transforms.insertText(editor, insert, { at });
-          return;
-        }
-
-        const toInsert = deltaInsertToSlateNode(change);
-        Transforms.insertNodes(editor, toInsert, { at });
-      }
-    });
+      const toInsert = deltaInsertToSlateNode(change);
+      Transforms.insertNodes(editor, toInsert, { at });
+    }
+  });
 }
 
 export function applyYTextEvent(
