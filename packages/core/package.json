@@ -18,7 +18,7 @@
   "unpkg": "dist/index.global.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "yarn run tsup && tsc --emitDeclarationOnly --project tsconfig.build.json",
+    "build": "rm -rf dist tsconfig.build.tsbuildinfo && yarn run tsup && tsc --emitDeclarationOnly --project tsconfig.build.json",
     "dev": "yarn run tsup --watch"
   },
   "repository": {
