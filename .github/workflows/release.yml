@@ -17,6 +17,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Replace package names
+        run: ./replace-package-names.sh
+
       - name: Setup Node
         uses: actions/setup-node@v2
         with:
