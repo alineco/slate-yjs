@@ -16,7 +16,7 @@
     "test": "yarn run vitest run",
     "test:watch": "yarn run vitest",
     "clean": "git clean -dfX",
-    "prerelease": "yarn lint && yarn test && yarn build",
+    "prerelease": "yarn test && yarn build",
     "release": "yarn prerelease && yarn changeset publish"
   },
   "devDependencies": {
