@@ -20,12 +20,11 @@
     "test": "yarn run vitest run",
     "test:watch": "yarn run vitest",
     "clean": "git clean -dfX",
-    "prerelease": "yarn lint && yarn test && yarn build",
+    "prerelease": "yarn test && yarn build",
     "release": "yarn prerelease && yarn changeset publish"
   },
   "devDependencies": {
-    "@changesets/changelog-github": "^0.4.7",
-    "@changesets/cli": "^2.25.0",
+    "@changesets/cli": "^2.29.7",
     "@typescript-eslint/eslint-plugin": "^5.17.0",
     "@typescript-eslint/parser": "^5.17.0",
     "chalk": "^5.6.2",

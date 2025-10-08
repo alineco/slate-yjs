@@ -17,6 +17,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Replace package names
+        run: ./replace-package-names.sh
+
       - name: Setup Node
         uses: actions/setup-node@v5
         with:
@@ -25,7 +28,12 @@ jobs:
           registry-url: https://registry.npmjs.org/
 
       - name: Install Dependencies
-        run: yarn --immutable
+        run: yarn install
+        env:
+          # The replace-package-names.sh script causes the order of some
+          # yarn.lock entries to change. Disable Yarn's immutable installs
+          # feature to prevent it from complaining about this. 
+          YARN_ENABLE_IMMUTABLE_INSTALLS: 0
 
       - name: Create Release Pull Request or Publish to npm
         uses: changesets/action@v1
