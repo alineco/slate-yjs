@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 
-sed -i '' \
+set -e
+set -o pipefail
+
+# https://unix.stackexchange.com/a/92907
+case $(sed --help 2>&1) in
+  *GNU*) safe_sed () { sed -i "$@"; };;
+  *) safe_sed () { sed -i '' "$@"; };;
+esac
+
+safe_sed \
   's/@slate-yjs\/core/@alineco\/slate-yjs-core/g; s/@slate-yjs\/react/@alineco\/slate-yjs-react/g' \
   $(git ls-files | grep -v '\.gif\|replace-package-names\.sh')
 
