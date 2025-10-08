@@ -28,7 +28,12 @@ jobs:
           registry-url: https://registry.npmjs.org/
 
       - name: Install Dependencies
-        run: yarn install # Can't use --immutable due to replace-package-names.sh
+        run: yarn install
+        env:
+          # The replace-package-names.sh script causes the order of some
+          # yarn.lock entries to change. Disable Yarn's immutable installs
+          # feature to prevent it from complaining about this. 
+          YARN_ENABLE_IMMUTABLE_INSTALLS: 0
 
       - name: Create Release Pull Request or Publish to npm
         uses: changesets/action@v1
