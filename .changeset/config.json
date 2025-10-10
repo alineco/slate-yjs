@@ -6,7 +6,7 @@
   ],
   "commit": false,
   "linked": [["@slate-yjs/core", "@slate-yjs/react"]],
-  "access": "restricted",
+  "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": [],
