@@ -19,7 +19,7 @@
   "unpkg": "dist/index.global.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "yarn run tsup && tsc --emitDeclarationOnly",
+    "build": "yarn run tsup && tsc --build --force -emitDeclarationOnly",
     "dev": "yarn run tsup --watch"
   },
   "repository": {
@@ -32,17 +32,17 @@
     "@types/react": "^17.0.34",
     "@types/use-sync-external-store": "^0.0.3",
     "react": "^17.0.2",
-    "slate": "^0.82.1",
-    "tsup": "^5.12.1",
-    "typescript": "^4.6.3",
-    "yjs": "^13.5.29"
+    "slate": "^0.118.1",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3",
+    "yjs": "^13.6.27"
   },
   "peerDependencies": {
     "@slate-yjs/core": "^1.0.0",
     "react": ">=16.8.0",
     "slate": ">=0.70.0",
     "slate-react": ">=0.70.0",
-    "yjs": "^13.5.29"
+    "yjs": ">=13.5.29"
   },
   "bugs": {
     "url": "https://github.com/BitPhinix/slate-yjs/issues"

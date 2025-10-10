@@ -1,6 +1,6 @@
 /** @jsx jsx */
 import { Editor } from 'slate';
-import { jsx } from '../../../../../support/jsx';
+import { jsx } from '../../support/jsx';
 
 export const input = (
   <editor>
@@ -13,6 +13,8 @@ export const input = (
     </unstyled>
   </editor>
 );
+
+export const initialRemoteSelection = { path: [0, 0], offset: 6 };
 
 export const expected = (
   <editor>
@@ -27,16 +29,7 @@ export const expected = (
   </editor>
 );
 
-export const inputRemoteEditor = (
-  <editor>
-    <unstyled>
-      <text bold>
-        Hello
-        <cursor /> world!
-      </text>
-    </unstyled>
-  </editor>
-);
+export const expectedRemoteSelection = { path: [0, 1], offset: 1 };
 
 export function run(editor: Editor) {
   editor.removeMark('bold');

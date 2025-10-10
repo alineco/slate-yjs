@@ -1,6 +1,6 @@
 /** @jsx jsx */
 import { Editor } from 'slate';
-import { jsx } from '../../../../../support/jsx';
+import { jsx } from '../../support/jsx';
 
 export const input = (
   <editor>
@@ -15,10 +15,12 @@ export const input = (
 export const expected = (
   <editor>
     <unstyled>
+      <text />
       <note-link entityId="myEntity">
         Hello world
         <cursor />!
       </note-link>
+      <text />
     </unstyled>
   </editor>
 );

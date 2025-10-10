@@ -1,16 +1,17 @@
-import { Node, SplitNodeOperation, Text } from 'slate';
+import { Ancestor, SplitNodeOperation, Text } from 'slate';
 import * as Y from 'yjs';
-import { cloneInsertDeltaDeep } from '../../utils/clone';
+import { cloneDeltaDeep } from '../../utils/clone';
 import { sliceInsertDelta, yTextToInsertDelta } from '../../utils/delta';
 import { getSlateNodeYLength, getYTarget } from '../../utils/location';
 import {
   getStoredPositionsInDeltaAbsolute,
   restoreStoredPositionsWithDeltaAbsolute,
 } from '../../utils/position';
+import { EMPTY_TEXT_ATTRIBUTE, insertEmptyText } from '../../utils/emptyText';
 
 export function splitNode(
   sharedRoot: Y.XmlText,
-  slateRoot: Node,
+  slateRoot: Ancestor,
   op: SplitNodeOperation
 ): void {
   const target = getYTarget(sharedRoot, slateRoot, op.path);
@@ -24,20 +25,39 @@ export function splitNode(
       throw new Error('Mismatch node type between y target and slate node');
     }
 
+    const oldProperties: Record<string, unknown> = {};
     const unset: Record<string, null> = {};
+
     target.targetDelta.forEach((element) => {
       if (element.attributes) {
-        Object.keys(element.attributes).forEach((key) => {
-          unset[key] = null;
+        Object.entries(element.attributes).forEach(([key, value]) => {
+          if (key !== EMPTY_TEXT_ATTRIBUTE) {
+            oldProperties[key] = value;
+            unset[key] = null;
+          }
         });
       }
     });
 
-    return target.yParent.format(
-      target.textRange.start,
-      target.textRange.end - target.textRange.start,
-      { ...unset, ...op.properties }
-    );
+    let ySplitOffset = target.textRange.start + op.position;
+    let length = target.textRange.end - ySplitOffset;
+
+    if (op.position === 0) {
+      insertEmptyText(target.yParent, ySplitOffset, oldProperties);
+      ySplitOffset++;
+    }
+
+    if (length === 0) {
+      insertEmptyText(target.yParent, ySplitOffset);
+      length++;
+    }
+
+    target.yParent.format(ySplitOffset, length, {
+      ...unset,
+      ...op.properties,
+    });
+
+    return;
   }
 
   if (Text.isText(target.slateTarget)) {
@@ -48,12 +68,25 @@ export function splitNode(
     op.position,
   ]);
 
-  const ySplitOffset = target.slateTarget.children
-    .slice(0, op.position)
-    .reduce((length, child) => length + getSlateNodeYLength(child), 0);
+  const yParentDelta = yTextToInsertDelta(target.yTarget);
+
+  const ySplitOffset = target.slateTarget.children.slice(0, op.position).reduce(
+    (length, child) =>
+      length +
+      getSlateNodeYLength(child, {
+        yParentDelta,
+        yOffset: length,
+      }),
+    0
+  );
 
   const length = target.slateTarget.children.reduce(
-    (current, child) => current + getSlateNodeYLength(child),
+    (current, child) =>
+      current +
+      getSlateNodeYLength(child, {
+        yParentDelta,
+        yOffset: current,
+      }),
     0
   );
 
@@ -62,7 +95,7 @@ export function splitNode(
     ySplitOffset,
     length - ySplitOffset
   );
-  const clonedDelta = cloneInsertDeltaDeep(splitDelta);
+  const clonedDelta = cloneDeltaDeep(splitDelta);
 
   const storedPositions = getStoredPositionsInDeltaAbsolute(
     sharedRoot,

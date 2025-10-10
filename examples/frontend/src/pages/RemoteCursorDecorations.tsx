@@ -62,7 +62,7 @@ function DecoratedEditable() {
   const decorate = useDecorateRemoteCursors();
   return (
     <CustomEditable
-      className="max-w-4xl w-full flex-col break-words"
+      className="max-w-4xl w-full flex-col break-words outline-none"
       decorate={decorate}
       renderLeaf={renderDecoratedLeaf}
     />
@@ -80,7 +80,6 @@ export function RemoteCursorDecorations() {
         name: 'slate-yjs-demo',
         onConnect: () => setConnected(true),
         onDisconnect: () => setConnected(false),
-        connect: false,
       }),
     []
   );
@@ -95,6 +94,8 @@ export function RemoteCursorDecorations() {
 
   const editor = useMemo(() => {
     const sharedType = provider.document.get('content', Y.XmlText) as Y.XmlText;
+
+    if (!provider.awareness) throw new Error('Awareness missing on provider');
 
     return withMarkdown(
       withNormalize(
@@ -113,20 +114,35 @@ export function RemoteCursorDecorations() {
     );
   }, [provider.awareness, provider.document]);
 
-  // Connect editor and provider in useEffect to comply with concurrent mode
-  // requirements.
+  /**
+   * Do not connect YjsEditor until the provider has synced. This prevents the
+   * insertion of additional paragraphs at the start of the document.
+   */
   useEffect(() => {
-    provider.connect();
-    return () => provider.disconnect();
-  }, [provider]);
-  useEffect(() => {
-    YjsEditor.connect(editor);
-    return () => YjsEditor.disconnect(editor);
-  }, [editor]);
+    const connectIfNeeded = () => {
+      if (!YjsEditor.connected(editor)) {
+        YjsEditor.connect(editor);
+      }
+    };
+
+    if (provider.isSynced) {
+      connectIfNeeded();
+    } else {
+      const onSynced = () => {
+        connectIfNeeded();
+        provider.off('synced', onSynced);
+      };
+
+      provider.on('synced', onSynced);
+      return () => {
+        provider.off('synced', onSynced);
+      };
+    }
+  }, [provider, editor]);
 
   return (
     <div className="flex justify-center my-32 mx-10">
-      <Slate value={value} onChange={setValue} editor={editor}>
+      <Slate initialValue={value} onChange={setValue} editor={editor}>
         <FormatToolbar />
         <DecoratedEditable />
       </Slate>

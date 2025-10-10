@@ -1,6 +1,6 @@
 /** @jsx jsx */
 import { Editor } from 'slate';
-import { jsx } from '../../../../../support/jsx';
+import { jsx } from '../../support/jsx';
 
 export const input = (
   <editor>
@@ -16,11 +16,11 @@ export const input = (
 export const expected = (
   <editor>
     <unstyled>
-      <anchor />
       <text italic bold>
+        <anchor />
         Hello world
+        <focus />
       </text>
-      <focus />
       <text bold>!</text>
     </unstyled>
   </editor>

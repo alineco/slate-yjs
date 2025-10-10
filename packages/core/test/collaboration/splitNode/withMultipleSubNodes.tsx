@@ -1,7 +1,6 @@
-/* eslint-disable react/void-dom-elements-no-children */
 /** @jsx jsx */
 import { Editor, Transforms } from 'slate';
-import { jsx } from '../../../../../support/jsx';
+import { jsx } from '../../support/jsx';
 
 export const input = (
   <editor>
@@ -10,7 +9,9 @@ export const input = (
       <cursor />
       slate-yjs
       <link url="https://slate-yjs.dev">slate-yjs</link>
+      <text />
       <link url="https://slate-yjs.dev">slate-yjs</link>
+      <text />
     </unstyled>
   </editor>
 );
@@ -22,7 +23,9 @@ export const expected = (
       <cursor />
       slate-yjs
       <link url="https://slate-yjs.dev">slate-yjs</link>
+      <text />
       <link url="https://slate-yjs.dev">slate-yjs</link>
+      <text />
     </unstyled>
   </editor>
 );

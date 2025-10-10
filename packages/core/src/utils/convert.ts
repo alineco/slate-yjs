@@ -1,31 +1,63 @@
-import { Element, Node, Text } from 'slate';
+import { Descendant, Element, Text } from 'slate';
 import * as Y from 'yjs';
 import { DeltaInsert, InsertDelta } from '../model/types';
 import { yTextToInsertDelta } from './delta';
 import { getProperties } from './slate';
+import {
+  getEmptyTextInsert,
+  isDeltaInsertEmptyText,
+  omitEmptyTextAttribute,
+} from './emptyText';
 
-export function yTextToSlateElement(yText: Y.XmlText): Element {
+export interface DeltaInsertToSlateNodeOptions {
+  /**
+   * If true, empty yTexts will be converted to empty Slate elements, with no
+   * children. By default, empty text nodes will be inserted for empty yTexts.
+   * @default false
+   */
+  allowEmptyElements?: boolean;
+}
+
+export function yTextToSlateElement(
+  yText: Y.XmlText,
+  options: DeltaInsertToSlateNodeOptions = {}
+): Element {
+  const { allowEmptyElements = false } = options;
   const delta = yTextToInsertDelta(yText);
 
   const children =
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
-    delta.length > 0 ? delta.map(deltaInsertToSlateNode) : [{ text: '' }];
+    allowEmptyElements || delta.length > 0
+      ? // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        delta.map((insert) => deltaInsertToSlateNode(insert, options))
+      : [{ text: '' }];
+  const attributes = yText.getAttributes();
 
-  return { ...yText.getAttributes(), children };
+  return { ...attributes, children };
 }
 
-export function deltaInsertToSlateNode(insert: DeltaInsert): Node {
+export function deltaInsertToSlateNode(
+  insert: DeltaInsert,
+  options: DeltaInsertToSlateNodeOptions = {}
+): Descendant {
   if (typeof insert.insert === 'string') {
+    if (isDeltaInsertEmptyText(insert)) {
+      return { ...omitEmptyTextAttribute(insert.attributes), text: '' };
+    }
+
     return { ...insert.attributes, text: insert.insert };
   }
 
-  return yTextToSlateElement(insert.insert);
+  return yTextToSlateElement(insert.insert, options);
 }
 
-export function slateNodesToInsertDelta(nodes: Node[]): InsertDelta {
+export function slateNodesToInsertDelta(nodes: Descendant[]): InsertDelta {
   return nodes.map((node) => {
     if (Text.isText(node)) {
-      return { insert: node.text, attributes: getProperties(node) };
+      const { text } = node;
+      const attributes = getProperties(node);
+      return text.length
+        ? { insert: text, attributes }
+        : getEmptyTextInsert(attributes);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
