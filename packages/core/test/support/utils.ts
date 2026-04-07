@@ -4,6 +4,11 @@ import { DeltaInsert } from '../../src/model/types';
 import { yTextToInsertDelta } from '../../src/utils/delta';
 import { slateNodesToInsertDelta } from '../../src';
 import { STORED_POSITION_PREFIX } from '../../src/utils/position';
+import {
+  EMPTY_TEXT_PREFIX,
+  hasEmptyTextAttribute,
+  isEmptyTextAttribute,
+} from '../../src/utils/emptyText';
 
 interface RecursiveDeltaInsert extends Omit<DeltaInsert, 'insert'> {
   insert: string | RecursiveInsertDelta | RecursiveDeltaInsert;
@@ -14,9 +19,21 @@ type RecursiveInsertDelta = RecursiveDeltaInsert[];
 export function inspectYText(yText: Y.XmlText): RecursiveDeltaInsert {
   const delta = yTextToInsertDelta(yText);
 
-  const mappedDelta = delta.map(({ insert, ...rest }) =>
-    typeof insert === 'string' ? { insert, ...rest } : inspectYText(insert)
-  );
+  const mappedDelta = delta.map(({ insert, attributes }) => {
+    if (typeof insert !== 'string') return inspectYText(insert);
+    if (!attributes) return { insert };
+
+    const filteredAttributes = Object.fromEntries(
+      Object.entries(attributes).filter(([key]) => !isEmptyTextAttribute(key))
+    );
+
+    // Do not include random empty text attribute IDs
+    if (hasEmptyTextAttribute(attributes)) {
+      filteredAttributes[`${EMPTY_TEXT_PREFIX}<id>`] = true;
+    }
+
+    return { insert, attributes: filteredAttributes };
+  });
 
   const attributes = yText.getAttributes();
 

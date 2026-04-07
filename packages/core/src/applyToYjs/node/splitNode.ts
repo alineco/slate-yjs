@@ -7,7 +7,7 @@ import {
   getStoredPositionsInDeltaAbsolute,
   restoreStoredPositionsWithDeltaAbsolute,
 } from '../../utils/position';
-import { EMPTY_TEXT_ATTRIBUTE, insertEmptyText } from '../../utils/emptyText';
+import { insertEmptyText, isEmptyTextAttribute } from '../../utils/emptyText';
 
 export function splitNode(
   sharedRoot: Y.XmlText,
@@ -31,7 +31,7 @@ export function splitNode(
     target.targetDelta.forEach((element) => {
       if (element.attributes) {
         Object.entries(element.attributes).forEach(([key, value]) => {
-          if (key !== EMPTY_TEXT_ATTRIBUTE) {
+          if (!isEmptyTextAttribute(key)) {
             oldProperties[key] = value;
             unset[key] = null;
           }

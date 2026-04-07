@@ -4,7 +4,7 @@ import { getSlateNodeYLength } from '../utils/location';
 import { deepEquals } from '../utils/object';
 import { getProperties } from '../utils/slate';
 import {
-  EMPTY_TEXT_ATTRIBUTE,
+  hasEmptyTextAttribute,
   omitEmptyTextAttribute,
 } from '../utils/emptyText';
 
@@ -24,7 +24,7 @@ export function getInsertMethod(
   attributes: Record<string, unknown>
 ): InsertMethod {
   const properties = omitEmptyTextAttribute(attributes);
-  const isInsertEmptyText = EMPTY_TEXT_ATTRIBUTE in attributes;
+  const isInsertEmptyText = hasEmptyTextAttribute(attributes);
   const children = Array.from(Node.children(editor, parentPath));
 
   let currentOffset = 0;

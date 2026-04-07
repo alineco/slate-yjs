@@ -30,12 +30,6 @@ export const expected = (
   </editor>
 );
 
-export const yExpected = yTextFactory(
-  <editor>
-    <unstyled />
-  </editor>
-);
-
 export function run(editor: Editor) {
   Editor.withoutNormalizing(editor, () => {
     Transforms.removeNodes(editor, { at: [0, 1] });
