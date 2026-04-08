@@ -1,5 +1,11 @@
 # @slate-yjs/core
 
+## 1.2.0
+
+### Minor Changes
+
+- [`5005b25`](https://github.com/BitPhinix/slate-yjs/commit/5005b25f7dab1a678df9e3f86bf155330955b881) Thanks [@12joan](https://github.com/12joan)! - Support storing properties on empty text nodes through the use of invisible empty text characters (zero-width spaces with a special attribute) in the Yjs document
+
 ## 1.0.2
 
 ### Patch Changes
