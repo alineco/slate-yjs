@@ -1,5 +1,11 @@
 # @slate-yjs/react
 
+## 1.2.0
+
+### Patch Changes
+
+- [`5005b25`](https://github.com/BitPhinix/slate-yjs/commit/5005b25f7dab1a678df9e3f86bf155330955b881) Thanks [@12joan](https://github.com/12joan)! - Relax Yjs version constraint
+
 ## 1.1.0
 
 ### Minor Changes
