@@ -24,7 +24,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/BitPhinix/slate-yjs.git"
+    "url": "https://github.com/alineco/slate-yjs.git"
   },
   "license": "MIT",
   "devDependencies": {
