@@ -23,7 +23,12 @@
     // prettier
     "prettier/prettier": ["error"],
     // TypeScript
-    "@typescript-eslint/no-unused-vars": "error",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "args": "all"
+      }
+    ],
     "@typescript-eslint/explicit-member-accessibility": "off",
     "@typescript-eslint/no-object-literal-type-assertion": "off",
     // v4 changes
@@ -36,6 +41,7 @@
     "react/jsx-filename-extension": ["error", { "extensions": [".tsx"] }],
     "react/prop-types": ["off", {}],
     "react/jsx-props-no-spreading": "off",
+    "react/void-dom-elements-no-children": "off",
     // import
     "import/extensions": [
       "error",
@@ -48,17 +54,7 @@
         "tsx": "never"
       }
     ],
-    "import/no-extraneous-dependencies": [
-      "error",
-      {
-        "devDependencies": [
-          "**/test/**",
-          "**/*.config.js",
-          "./support/**",
-          "**/*.test.ts"
-        ]
-      }
-    ],
+    "import/no-extraneous-dependencies": "off",
     "no-restricted-syntax": "off",
     "no-continue": "off",
     "no-underscore-dangle": "off",

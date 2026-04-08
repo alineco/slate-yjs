@@ -1,6 +1,6 @@
 /** @jsx jsx */
-import { Editor, Transforms } from 'slate';
-import { jsx } from '../../../../../support/jsx';
+import { Editor, Element, Transforms } from 'slate';
+import { jsx } from '../../support/jsx';
 
 export const input = (
   <editor>
@@ -16,10 +16,12 @@ export const input = (
 export const expected = (
   <editor>
     <unstyled>
+      <text />
       <note-link noteId="note2">
         Meeting notes
         <cursor />
       </note-link>
+      <text />
     </unstyled>
   </editor>
 );
@@ -29,7 +31,7 @@ export function run(editor: Editor) {
     editor,
     { noteId: 'note2' },
     {
-      match: (node) => Editor.isInline(editor, node),
+      match: (node) => Element.isElement(node) && Editor.isInline(editor, node),
     }
   );
 }

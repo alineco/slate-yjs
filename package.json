@@ -9,10 +9,14 @@
     "dev": "yarn workspaces foreach -ipv run dev",
     "deploy": "yarn deploy:docs",
     "deploy:docs": "yarn workspace @slate-yjs/example deploy",
-    "lint": "yarn lint:typescript && yarn lint:eslint && yarn lint:prettier",
+    "lint": "yarn lint:typescript && yarn lint:prettier && yarn lint:eslint",
+    "lint:fix": "yarn lint:prettier:fix && yarn lint:eslint:fix && yarn lint:typescript",
     "lint:eslint": "eslint .",
+    "lint:eslint:fix": "eslint . --fix",
     "lint:prettier": "prettier --check .",
+    "lint:prettier:fix": "prettier --write --list-different .",
     "lint:typescript": "tsc --build ./ --force",
+    "lint:typescript:watch": "yarn run lint:typescript --watch",
     "test": "yarn run vitest run",
     "test:watch": "yarn run vitest",
     "clean": "git clean -dfX",
@@ -23,6 +27,7 @@
     "@changesets/cli": "^2.29.7",
     "@typescript-eslint/eslint-plugin": "^5.17.0",
     "@typescript-eslint/parser": "^5.17.0",
+    "chalk": "^5.6.2",
     "eslint": "^8.1.0",
     "eslint-config-airbnb": "^18.2.1",
     "eslint-config-prettier": "^8.3.0",
@@ -33,7 +38,7 @@
     "eslint-plugin-react-hooks": "^4.3.0",
     "prettier": "^2.4.1",
     "slate-hyperscript": "^0.67.0",
-    "typescript": "^4.6.3",
-    "vitest": "^0.8.1"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   }
 }

@@ -22,7 +22,6 @@ export function SimplePage() {
         name: 'slate-yjs-demo',
         onConnect: () => setConnected(true),
         onDisconnect: () => setConnected(false),
-        connect: false,
       }),
     []
   );
@@ -31,7 +30,6 @@ export function SimplePage() {
     if (connected) {
       return provider.disconnect();
     }
-
     provider.connect();
   }, [provider, connected]);
 
@@ -49,22 +47,37 @@ export function SimplePage() {
     );
   }, [provider.document]);
 
-  // Connect editor and provider in useEffect to comply with concurrent mode
-  // requirements.
+  /**
+   * Do not connect YjsEditor until the provider has synced. This prevents the
+   * insertion of additional paragraphs at the start of the document.
+   */
   useEffect(() => {
-    provider.connect();
-    return () => provider.disconnect();
-  }, [provider]);
-  useEffect(() => {
-    YjsEditor.connect(editor);
-    return () => YjsEditor.disconnect(editor);
-  }, [editor]);
+    const connectIfNeeded = () => {
+      if (!YjsEditor.connected(editor)) {
+        YjsEditor.connect(editor);
+      }
+    };
+
+    if (provider.isSynced) {
+      connectIfNeeded();
+    } else {
+      const onSynced = () => {
+        connectIfNeeded();
+        provider.off('synced', onSynced);
+      };
+
+      provider.on('synced', onSynced);
+      return () => {
+        provider.off('synced', onSynced);
+      };
+    }
+  }, [provider, editor]);
 
   return (
     <div className="flex justify-center my-32 mx-10">
-      <Slate value={value} onChange={setValue} editor={editor}>
+      <Slate initialValue={value} onChange={setValue} editor={editor}>
         <FormatToolbar />
-        <CustomEditable className="max-w-4xl w-full flex-col break-words" />
+        <CustomEditable className="max-w-4xl w-full flex-col break-words outline-none" />
       </Slate>
       <ConnectionToggle connected={connected} onClick={toggleConnection} />
     </div>

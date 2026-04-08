@@ -1,4 +1,5 @@
 import { createHyperscript } from 'slate-hyperscript';
+import './jsx.d';
 
 export const jsx = createHyperscript({
   elements: {

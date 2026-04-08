@@ -1,7 +1,7 @@
-import { MergeNodeOperation, Node, Path, Text } from 'slate';
+import { Ancestor, MergeNodeOperation, Node, Path, Text } from 'slate';
 import * as Y from 'yjs';
 import { Delta } from '../../model/types';
-import { cloneInsertDeltaDeep } from '../../utils/clone';
+import { cloneDeltaDeep } from '../../utils/clone';
 import { yTextToInsertDelta } from '../../utils/delta';
 import { getYTarget } from '../../utils/location';
 import {
@@ -9,10 +9,11 @@ import {
   restoreStoredPositionsWithDeltaAbsolute,
 } from '../../utils/position';
 import { getProperties } from '../../utils/slate';
+import { isInsertDeltaEmptyText } from '../../utils/emptyText';
 
 export function mergeNode(
   sharedRoot: Y.XmlText,
-  slateRoot: Node,
+  slateRoot: Ancestor,
   op: MergeNodeOperation
 ): void {
   const target = getYTarget(sharedRoot, slateRoot, op.path);
@@ -28,13 +29,21 @@ export function mergeNode(
 
   if (!prev.yTarget || !target.yTarget) {
     const { yParent: parent, textRange, slateTarget } = target;
-    if (!slateTarget) {
-      throw new Error('Expected Slate target node for merge op.');
+    if (!slateTarget || !Text.isText(slateTarget)) {
+      throw new Error('Expected Slate target text node for merge op.');
     }
 
     const prevSibling = Node.get(slateRoot, Path.previous(op.path));
     if (!Text.isText(prevSibling)) {
       throw new Error('Path points to Y.Text but not a Slate text node.');
+    }
+
+    if (isInsertDeltaEmptyText(target.targetDelta)) {
+      parent.delete(
+        target.textRange.start,
+        target.targetDelta[0].insert.length
+      );
+      return;
     }
 
     const targetProps = getProperties(slateTarget);
@@ -44,21 +53,26 @@ export function mergeNode(
       return prevSiblingHasProp ? acc : { ...acc, [key]: null };
     }, {});
 
-    return parent.format(textRange.start, textRange.end - textRange.start, {
+    parent.format(textRange.start, textRange.end - textRange.start, {
       ...unsetProps,
       ...prevSiblingProps,
     });
+
+    if (isInsertDeltaEmptyText(prev.targetDelta)) {
+      parent.delete(prev.textRange.start, prev.targetDelta[0].insert.length);
+    }
+
+    return;
   }
 
   const deltaApplyYOffset = prev.yTarget.length;
   const targetDelta = yTextToInsertDelta(target.yTarget);
-  const clonedDelta = cloneInsertDeltaDeep(targetDelta);
+  const clonedDelta = cloneDeltaDeep(targetDelta);
 
   const storedPositions = getStoredPositionsInDeltaAbsolute(
     sharedRoot,
     target.yTarget,
-    targetDelta,
-    deltaApplyYOffset
+    targetDelta
   );
 
   const applyDelta: Delta = [{ retain: deltaApplyYOffset }, ...clonedDelta];

@@ -1,42 +1,76 @@
-import { Element, Node, Path, Text } from 'slate';
+import { Ancestor, Node, Path, Text } from 'slate';
 import * as Y from 'yjs';
-import { YTarget } from '../model/types';
-import { sliceInsertDelta, yTextToInsertDelta } from './delta';
+import { InsertDelta, YTarget } from '../model/types';
+import {
+  getNextDeltaInsert,
+  sliceInsertDelta,
+  yTextToInsertDelta,
+} from './delta';
+import { isDeltaInsertEmptyText } from './emptyText';
 
-export function getSlateNodeYLength(node: Node | undefined): number {
-  if (!node) {
-    return 0;
-  }
-
-  return Text.isText(node) ? node.text.length : 1;
+export interface GetSlateNodeYLengthOptions {
+  yParentDelta?: InsertDelta;
+  yOffset?: number;
 }
 
-export function slatePathOffsetToYOffset(element: Element, pathOffset: number) {
+export function getSlateNodeYLength(
+  node: Node | undefined,
+  { yParentDelta, yOffset }: GetSlateNodeYLengthOptions = {}
+): number {
+  if (!node) return 0;
+  if (!Text.isText(node)) return 1;
+
+  const { length } = node.text;
+  if (length > 0) return length;
+
+  /**
+   * This is an empty text node, so check if there are one or more empty text
+   * characters in the yText at the current position.
+   */
+  if (!yParentDelta || yOffset === undefined) return 1;
+  const nextInsert = getNextDeltaInsert(yParentDelta, yOffset);
+
+  return typeof nextInsert?.insert === 'string' &&
+    isDeltaInsertEmptyText(nextInsert)
+    ? nextInsert.insert.length
+    : 0;
+}
+
+export function slatePathOffsetToYOffset(
+  element: Ancestor,
+  pathOffset: number,
+  options?: Omit<GetSlateNodeYLengthOptions, 'yOffset'>
+) {
   return element.children
     .slice(0, pathOffset)
-    .reduce((yOffset, node) => yOffset + getSlateNodeYLength(node), 0);
+    .reduce(
+      (yOffset, node) =>
+        yOffset + getSlateNodeYLength(node, { yOffset, ...options }),
+      0
+    );
 }
 
 export function getYTarget(
   yRoot: Y.XmlText,
-  slateRoot: Node,
+  slateRoot: Ancestor,
   path: Path
 ): YTarget {
   if (path.length === 0) {
     throw new Error('Path has to a have a length >= 1');
   }
 
-  if (Text.isText(slateRoot)) {
-    throw new Error('Cannot descent into slate text');
-  }
-
   const [pathOffset, ...childPath] = path;
 
-  const yOffset = slatePathOffsetToYOffset(slateRoot, pathOffset);
-  const targetNode = slateRoot.children[pathOffset];
-
   const delta = yTextToInsertDelta(yRoot);
-  const targetLength = getSlateNodeYLength(targetNode);
+  const yOffset = slatePathOffsetToYOffset(slateRoot, pathOffset, {
+    yParentDelta: delta,
+  });
+
+  const targetNode = slateRoot.children[pathOffset];
+  const targetLength = getSlateNodeYLength(targetNode, {
+    yParentDelta: delta,
+    yOffset,
+  });
 
   const targetDelta = sliceInsertDelta(delta, yOffset, targetLength);
   if (targetDelta.length > 1) {
@@ -45,7 +79,7 @@ export function getYTarget(
 
   const yTarget = targetDelta[0]?.insert;
   if (childPath.length > 0) {
-    if (!(yTarget instanceof Y.XmlText)) {
+    if (!(yTarget instanceof Y.XmlText) || Text.isText(targetNode)) {
       throw new Error(
         "Path doesn't match yText, cannot descent into non-yText"
       );
@@ -64,18 +98,27 @@ export function getYTarget(
   };
 }
 
+export interface YOffsetToSlateOffsetsOptions {
+  yParentDelta?: InsertDelta;
+  assoc?: number;
+}
+
 export function yOffsetToSlateOffsets(
-  parent: Element,
+  parent: Ancestor,
   yOffset: number,
-  opts: { assoc?: number; insert?: boolean } = {}
+  options: YOffsetToSlateOffsetsOptions = {}
 ): [number, number] {
-  const { assoc = 0, insert = false } = opts;
+  const { yParentDelta, assoc = 0 } = options;
 
   let currentOffset = 0;
   let lastNonEmptyPathOffset = 0;
   for (let pathOffset = 0; pathOffset < parent.children.length; pathOffset++) {
     const child = parent.children[pathOffset];
-    const nodeLength = Text.isText(child) ? child.text.length : 1;
+    const nodeLength = getSlateNodeYLength(child, {
+      yParentDelta,
+      yOffset: currentOffset,
+    });
+    const textLength = Text.isText(child) ? child.text.length : 0;
 
     if (nodeLength > 0) {
       lastNonEmptyPathOffset = pathOffset;
@@ -86,18 +129,14 @@ export function yOffsetToSlateOffsets(
       nodeLength > 0 &&
       (assoc >= 0 ? endOffset > yOffset : endOffset >= yOffset)
     ) {
-      return [pathOffset, yOffset - currentOffset];
+      return [pathOffset, Math.min(textLength, yOffset - currentOffset)];
     }
 
     currentOffset += nodeLength;
   }
 
-  if (yOffset > currentOffset + (insert ? 1 : 0)) {
+  if (yOffset > currentOffset) {
     throw new Error('yOffset out of bounds');
-  }
-
-  if (insert) {
-    return [parent.children.length, 0];
   }
 
   const child = parent.children[lastNonEmptyPathOffset];
@@ -150,7 +189,9 @@ export function getSlatePath(
       throw new Error('Cannot descent into slate text');
     }
 
-    const [pathOffset] = yOffsetToSlateOffsets(slateParent, yOffset);
+    const [pathOffset] = yOffsetToSlateOffsets(slateParent, yOffset, {
+      yParentDelta: currentDelta,
+    });
     slateParent = slateParent.children[pathOffset];
     return path.concat(pathOffset);
   }, []);

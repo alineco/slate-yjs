@@ -1,44 +1,34 @@
-import { Editor, Operation } from 'slate';
+import { Editor } from 'slate';
 import * as Y from 'yjs';
-import { translateYTextEvent } from './textEvent';
+import { applyYTextEvent } from './textEvent';
+import { ClonedSharedRoot } from '../utils/ClonedSharedRoot';
 
-/**
- * Translate a yjs event into slate operations. The editor state has to match the
- * yText state before the event occurred.
- *
- * @param sharedType
- * @param op
- */
-export function translateYjsEvent(
-  sharedRoot: Y.XmlText,
+function applyYjsEvent(
+  clonedSharedRoot: ClonedSharedRoot,
   editor: Editor,
   event: Y.YEvent<Y.XmlText>
-): Operation[] {
+) {
   if (event instanceof Y.YTextEvent) {
-    return translateYTextEvent(sharedRoot, editor, event);
+    applyYTextEvent(clonedSharedRoot, editor, event);
+    return;
   }
 
   throw new Error('Unexpected Y event type');
 }
 
 /**
- * Translates yjs events into slate operations and applies them to the editor. The
- * editor state has to match the yText state before the events occurred.
- *
- * @param sharedRoot
- * @param editor
- * @param events
+ * Applies Yjs events to the Slate editor. Assumes that the editor state matches
+ * clonedSharedRoot.
  */
 export function applyYjsEvents(
-  sharedRoot: Y.XmlText,
+  clonedSharedRoot: ClonedSharedRoot,
   editor: Editor,
   events: Y.YEvent<Y.XmlText>[]
 ) {
   Editor.withoutNormalizing(editor, () => {
     events.forEach((event) => {
-      translateYjsEvent(sharedRoot, editor, event).forEach((op) => {
-        editor.apply(op);
-      });
+      applyYjsEvent(clonedSharedRoot, editor, event);
+      clonedSharedRoot.applyEvent(event);
     });
   });
 }

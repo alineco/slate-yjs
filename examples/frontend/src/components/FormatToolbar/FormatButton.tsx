@@ -4,8 +4,9 @@ import clsx from 'clsx';
 import React from 'react';
 import { Editor, Text, Transforms } from 'slate';
 import { useSlate } from 'slate-react';
+import { CustomText } from '../../types';
 
-function isFormatActive(editor: Editor, format: string) {
+function isFormatActive(editor: Editor, format: keyof CustomText) {
   const [match] = Editor.nodes(editor, {
     match: (n) => Text.isText(n) && !n[format],
     mode: 'all',
@@ -13,7 +14,7 @@ function isFormatActive(editor: Editor, format: string) {
   return !match;
 }
 
-function toggleFormat(editor: Editor, format: string) {
+function toggleFormat(editor: Editor, format: keyof CustomText) {
   const isActive = isFormatActive(editor, format);
   Transforms.setNodes(
     editor,
@@ -23,7 +24,7 @@ function toggleFormat(editor: Editor, format: string) {
 }
 
 type FormatButtonProps = {
-  format: string;
+  format: keyof CustomText;
   icon: IconDefinition;
 };
 

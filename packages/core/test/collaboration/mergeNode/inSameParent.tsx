@@ -1,6 +1,6 @@
 /** @jsx jsx */
 import { Editor } from 'slate';
-import { jsx } from '../../../../../support/jsx';
+import { jsx } from '../../support/jsx';
 
 export const input = (
   <editor>
@@ -12,11 +12,19 @@ export const input = (
   </editor>
 );
 
+export const inputStoredPositions = {
+  yjs: { path: [0, 2], offset: 1 },
+};
+
 export const expected = (
   <editor>
     <unstyled>Welcome to SlateYJS!</unstyled>
   </editor>
 );
+
+export const expectedStoredPositions = {
+  yjs: { path: [0, 0], offset: 17 },
+};
 
 export function run(editor: Editor) {
   editor.apply({

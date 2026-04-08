@@ -25,7 +25,7 @@ function createSetBlockApply(type: Element['type']) {
       editor,
       { type },
       {
-        match: (n) => Editor.isBlock(editor, n),
+        match: (n) => Element.isElement(n) && Editor.isBlock(editor, n),
         at: range,
       }
     );
@@ -38,7 +38,7 @@ function createSetInlineApply(type: Element['type']) {
 
     Transforms.unwrapNodes(editor, {
       at: range,
-      match: (n) => Editor.isInline(editor, n),
+      match: (n) => Element.isElement(n) && Editor.isInline(editor, n),
       mode: 'all',
       split: true,
     });
@@ -138,7 +138,7 @@ export function withMarkdown(editor: Editor) {
 
     const { anchor } = selection;
     const block = Editor.above(editor, {
-      match: (n) => Editor.isBlock(editor, n),
+      match: (n) => Element.isElement(n) && Editor.isBlock(editor, n),
     });
     const path = block ? block[1] : [];
     const blockRange = { anchor, focus: Editor.start(editor, path) };
@@ -196,7 +196,7 @@ export function withMarkdown(editor: Editor) {
 
     if (selection) {
       const block = Editor.above(editor, {
-        match: (n) => Editor.isBlock(editor, n),
+        match: (n) => Element.isElement(n) && Editor.isBlock(editor, n),
       });
       const path = block ? block[1] : [];
       const end = Editor.end(editor, path);
@@ -206,13 +206,13 @@ export function withMarkdown(editor: Editor) {
 
       if (wasSelectionAtEnd) {
         Transforms.unwrapNodes(editor, {
-          match: (n) => Editor.isInline(editor, n),
+          match: (n) => Element.isElement(n) && Editor.isInline(editor, n),
           mode: 'all',
         });
         Transforms.setNodes(
           editor,
           { type: 'paragraph' },
-          { match: (n) => Editor.isBlock(editor, n) }
+          { match: (n) => Element.isElement(n) && Editor.isBlock(editor, n) }
         );
         const marks = Editor.marks(editor) ?? {};
         Transforms.unsetNodes(editor, Object.keys(marks), {
@@ -227,7 +227,7 @@ export function withMarkdown(editor: Editor) {
 
     if (selection && Range.isCollapsed(selection)) {
       const match = Editor.above(editor, {
-        match: (n) => Editor.isBlock(editor, n),
+        match: (n) => Element.isElement(n) && Editor.isBlock(editor, n),
       });
 
       if (match) {

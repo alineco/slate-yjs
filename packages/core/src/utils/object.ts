@@ -66,28 +66,22 @@ export function deepEquals(
   return true;
 }
 
-export function pick<TObj, TKeys extends keyof TObj>(
-  obj: TObj,
-  ...keys: TKeys[]
-): Pick<TObj, TKeys> {
+// eslint-disable-next-line @typescript-eslint/ban-types
+export function pick<T extends Object, K extends keyof T>(
+  obj: T,
+  ...keys: K[]
+): Pick<T, K> {
   return Object.fromEntries(
-    Object.entries(obj).filter(([key]) => keys.includes(key as TKeys))
-  ) as Pick<TObj, TKeys>;
+    Object.entries(obj).filter(([key]) => keys.includes(key as K))
+  ) as Pick<T, K>;
 }
 
-export function omit<TObj, TKeys extends keyof TObj>(
-  obj: TObj,
-  ...keys: TKeys[]
-): Omit<TObj, TKeys> {
+// eslint-disable-next-line @typescript-eslint/ban-types
+export function omit<T extends Object, K extends keyof T>(
+  obj: T,
+  ...keys: K[]
+): Omit<T, K> {
   return Object.fromEntries(
-    Object.entries(obj).filter(([key]) => !keys.includes(key as TKeys))
-  ) as Omit<TObj, TKeys>;
-}
-
-export function omitNullEntries<TObj>(obj: TObj): {
-  [K in keyof TObj]: TObj[K] extends null ? never : K;
-} {
-  return Object.fromEntries(
-    Object.entries(obj).filter(([, value]) => value !== null)
-  ) as { [K in keyof TObj]: TObj[K] extends null ? never : K };
+    Object.entries(obj).filter(([key]) => !keys.includes(key as K))
+  ) as Omit<T, K>;
 }

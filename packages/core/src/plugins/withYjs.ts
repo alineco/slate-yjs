@@ -12,6 +12,7 @@ import {
   slatePointToRelativePosition,
 } from '../utils/position';
 import { assertDocumentAttachment } from '../utils/yjs';
+import { ClonedSharedRoot } from '../utils/ClonedSharedRoot';
 
 type LocalChange = {
   op: Operation;
@@ -28,6 +29,13 @@ const CONNECTED: WeakSet<Editor> = new WeakSet();
 
 export type YjsEditor = BaseEditor & {
   sharedRoot: Y.XmlText;
+
+  /**
+   * The state of the shared root prior to the current event. Used to correctly
+   * translate Yjs events to Slate operations based on the prior state. When not
+   * processing events, this should be equal to sharedRoot.
+   */
+  prevSharedRoot?: Y.XmlText;
 
   localOrigin: unknown;
   positionStorageOrigin: unknown;
@@ -166,6 +174,8 @@ export function withYjs<T extends Editor>(
 
   e.sharedRoot = sharedRoot;
 
+  let clonedSharedRoot: ClonedSharedRoot | undefined;
+
   e.localOrigin = localOrigin ?? DEFAULT_LOCAL_ORIGIN;
   e.positionStorageOrigin =
     positionStorageOrigin ?? DEFAULT_POSITION_STORAGE_ORIGIN;
@@ -173,9 +183,14 @@ export function withYjs<T extends Editor>(
   e.applyRemoteEvents = (events, origin) => {
     YjsEditor.flushLocalChanges(e);
 
-    Editor.withoutNormalizing(e, () => {
-      YjsEditor.withOrigin(e, origin, () => {
-        applyYjsEvents(e.sharedRoot, e, events);
+    YjsEditor.withOrigin(e, origin, () => {
+      Editor.withoutNormalizing(e, () => {
+        if (!clonedSharedRoot)
+          throw new Error(
+            'Cannot apply remote events before clonedSharedRoot is created'
+          );
+
+        applyYjsEvents(clonedSharedRoot, e, events);
       });
     });
   };
@@ -187,6 +202,7 @@ export function withYjs<T extends Editor>(
     transaction: Y.Transaction
   ) => {
     if (e.isLocalOrigin(transaction.origin)) {
+      events.forEach((event) => clonedSharedRoot?.applyEvent(event));
       return;
     }
 
@@ -206,6 +222,8 @@ export function withYjs<T extends Editor>(
       throw new Error('already connected');
     }
 
+    clonedSharedRoot = new ClonedSharedRoot(e.sharedRoot);
+    e.prevSharedRoot = clonedSharedRoot.sharedRoot;
     e.sharedRoot.observeDeep(handleYEvents);
     const content = yTextToSlateElement(e.sharedRoot);
     e.children = content.children;
