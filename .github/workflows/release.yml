@@ -43,7 +43,10 @@ jobs:
           YARN_ENABLE_IMMUTABLE_INSTALLS: 0
 
       - name: Upgrade npm for OIDC support
-        run: npm install -g npm@latest
+        run: |
+          # See https://github.com/npm/cli/issues/9151
+          npm install -g npm@~11.10.0
+          npm install -g npm@latest
 
       - name: Create Release Pull Request or Publish to npm
         uses: changesets/action@v1
