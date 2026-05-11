@@ -11,6 +11,7 @@ export function removeText(
 ): void {
   const { path, offset, text } = op;
   const { length } = text;
+  if (!length) return;
 
   const {
     yParent: target,
