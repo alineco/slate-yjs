@@ -1,5 +1,11 @@
 # @slate-yjs/core
 
+## 1.2.1
+
+### Patch Changes
+
+- [`8017e55`](https://github.com/BitPhinix/slate-yjs/commit/8017e5539bb6cd85387e0e30bb35fca0f11491f7) Thanks [@12joan](https://github.com/12joan)! - Correctly handle `insert_text` and `remove_text` operations that insert or remove no text.
+
 ## 1.2.0
 
 ### Minor Changes
