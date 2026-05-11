@@ -20,6 +20,8 @@ export function insertText(
     throw new Error('Cannot insert text into non-text node');
   }
 
+  if (!op.text.length) return;
+
   if (isInsertDeltaEmptyText(targetDelta)) {
     target.delete(textRange.start, targetDelta[0].insert.length);
   }
