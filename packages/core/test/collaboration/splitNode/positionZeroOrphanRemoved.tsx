@@ -1,30 +1,36 @@
 /** @jsx jsx */
 import { Editor } from 'slate';
 import { jsx } from '../../support/jsx';
+import { YjsEditor } from '../../../src';
 
-// Reproduction for a slate→Yjs→slate sync corruption that occurs when a
-// `split_node` at `position: 0` is followed (in the same un-normalized
-// batch) by a `remove_node` of the resulting empty leaf.
+// Adjustment 5 — production op log replayed verbatim.
 //
-// Slate's in-memory state after the three ops below is exactly the
-// `expected` tree — the split is a no-op structurally (leading half has
-// zero chars, then we remove it). But applying the same ops through
-// slate-yjs produces a different tree on the receiving side: subsequent
-// ops downstream of the split land on the wrong Y.XmlText. A *fresh*
-// load of the Yjs document is correct — the corruption is in the
-// in-memory slate ← Yjs translation, not the persisted state.
+// Captured from `aline:redline:apply` in production. Two logical
+// phases (applyAlineChanges, then insertSuggestionMarkersFromRange-
+// Markers) replace the suggestion-marker void elements bracketing
+// the redlined text and then re-`set_node` the now-shifted "fast"
+// text. On the local editor this produces the correct tree; the
+// streamed peer sees the trailing `set_node` land on the wrong
+// Y.XmlText.
 //
-// Real-world source: Slate's `splitTextAtEdges` forces an `always: true`
-// split whenever a range endpoint sits at offset 0 of a non-empty text
-// node. That op pair (split-at-position-0 + cleanup of the orphan empty
-// leaf) appears in every redline that inserts new text at the start of
-// an existing text node.
+// No `split_node` appears in the real log — the prior split-at-0
+// hypothesis was a red herring. The churn comes from the marker
+// remove+reinsert pair plus the empty-text remove that precedes it.
 
 export const input = (
   <editor>
     <unstyled>
-      <text>before </text>
-      <text italic>after</text>
+      <text suggestedEdits={[]}>The </text>
+      <text suggestedEdits={['del']}>quick</text>
+      <marker markerId={1}>
+        <text suggestedEdits={[]} />
+      </marker>
+      <text suggestedEdits={['del', 'ins']}>fast</text>
+      <text suggestedEdits={['ins']}>slow</text>
+      <marker markerId={1}>
+        <text suggestedEdits={[]} />
+      </marker>
+      <text suggestedEdits={[]}> brown fox jumped over the lazy dog.</text>
     </unstyled>
   </editor>
 );
@@ -32,43 +38,117 @@ export const input = (
 export const expected = (
   <editor>
     <unstyled>
-      <text>before </text>
-      <text bold>INSERT</text>
-      <text italic>after</text>
+      <text suggestedEdits={[]}>The </text>
+      <text suggestedEdits={['del']}>quick</text>
+      <marker markerId={2}>
+        <text suggestedEdits={[]} />
+      </marker>
+      <text suggestedEdits={['del2', 'ins2']}>fast</text>
+      <text suggestedEdits={['ins2']}>hyperactive</text>
+      <marker markerId={2}>
+        <text suggestedEdits={[]} />
+      </marker>
+      <text suggestedEdits={[]}> brown fox jumped over the lazy dog.</text>
     </unstyled>
   </editor>
 );
 
 export function run(editor: Editor) {
   Editor.withoutNormalizing(editor, () => {
-    // 1. Insert a NEW bolded text node between "before " and "after".
+    // Phase 1 — applyAlineChanges (production ops 1-3; op 4 is selection).
+
+    // op 1: insert "hyperactive" before " brown fox..." at [0, 6]
     editor.apply({
       type: 'insert_node',
-      path: [0, 1],
-      node: { text: 'INSERT', bold: true },
+      path: [0, 6],
+      node: { text: 'hyperactive', suggestedEdits: ['ins2'] },
     });
-    // Tree: [0]="before ", [1]="INSERT"(bold), [2]="after"
 
-    // 2. Split [0, 1] at position 0 with `bold` carried in `properties`.
-    //    The leading half is 0 chars; slate's `apply` produces an empty
-    //    leaf at [0, 1] that inherits "INSERT"'s properties, and shifts
-    //    "INSERT" to [0, 2].
+    // op 2: empty "slow" via remove_text at [0, 4]
     editor.apply({
-      type: 'split_node',
-      path: [0, 1],
-      position: 0,
-      properties: { bold: true },
+      type: 'remove_text',
+      path: [0, 4],
+      offset: 0,
+      text: 'slow',
     });
-    // Tree: [0]="before ", [1]="" (bold orphan), [2]="INSERT"(bold),
-    //       [3]="after"
 
-    // 3. Remove the orphan empty leaf.
+    // op 3: clear suggestedEdits array on the now-empty "slow" leaf
+    editor.apply({
+      type: 'set_node',
+      path: [0, 4],
+      properties: { suggestedEdits: ['ins'] },
+      newProperties: { suggestedEdits: [] },
+    });
+
+    // Flush phase 1 to Yjs as its own transaction so the streamed peer
+    // sees two separate updateV2 events (mirroring production, where
+    // applyAlineChanges and insertSuggestionMarkersFromRangeMarkers
+    // are independent callers). We stay inside `withoutNormalizing`
+    // so slate's normalize does NOT run between phases — that would
+    // strip the empty leaf at [0, 4] and break phase 2's paths.
+    YjsEditor.flushLocalChanges(editor as Editor & YjsEditor);
+
+    // Phase 2 — insertSuggestionMarkersFromRangeMarkers (production ops 5-10).
+
+    // op 5: remove the now-empty leaf at [0, 4]
     editor.apply({
       type: 'remove_node',
-      path: [0, 1],
-      node: { text: '', bold: true },
+      path: [0, 4],
+      node: { text: '', suggestedEdits: [] },
     });
-    // Tree: [0]="before ", [1]="INSERT"(bold), [2]="after" — matches
-    // `expected`.
+
+    // op 6: remove old marker end (was [0, 5], shifted to [0, 4])
+    editor.apply({
+      type: 'remove_node',
+      path: [0, 4],
+      node: {
+        type: 'marker',
+        markerId: 1,
+        children: [{ text: '', suggestedEdits: [] }],
+      },
+    });
+
+    // op 7: remove old marker start at [0, 2]
+    editor.apply({
+      type: 'remove_node',
+      path: [0, 2],
+      node: {
+        type: 'marker',
+        markerId: 1,
+        children: [{ text: '', suggestedEdits: [] }],
+      },
+    });
+
+    // op 8: insert new marker end (markerId=2) at [0, 4]
+    editor.apply({
+      type: 'insert_node',
+      path: [0, 4],
+      node: {
+        type: 'marker',
+        markerId: 2,
+        children: [{ text: '', suggestedEdits: [] }],
+      },
+    });
+
+    // op 9: insert new marker start (markerId=2) at [0, 2]
+    editor.apply({
+      type: 'insert_node',
+      path: [0, 2],
+      node: {
+        type: 'marker',
+        markerId: 2,
+        children: [{ text: '', suggestedEdits: [] }],
+      },
+    });
+
+    // op 10: set new suggestedEdits on "fast" — now at the shifted [0, 3].
+    //        This is the op that lands on the wrong Y.XmlText in production.
+    editor.apply({
+      type: 'set_node',
+      path: [0, 3],
+      properties: { suggestedEdits: ['del', 'ins'] },
+      newProperties: { suggestedEdits: ['del2', 'ins2'] },
+    });
   });
 }
+

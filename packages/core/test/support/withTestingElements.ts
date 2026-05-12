@@ -3,7 +3,8 @@ import * as Y from 'yjs';
 import { wait, yTextFactory } from './utils';
 import { withYHistory, withYjs } from '../../src';
 
-const INLINE_ELEMENTS = ['note-link', 'link'];
+const INLINE_ELEMENTS = ['note-link', 'link', 'marker'];
+const VOID_ELEMENTS = ['marker'];
 
 export interface WithTestingElementsOptions {
   doc?: Y.Doc;
@@ -17,7 +18,7 @@ export async function withTestingElements(
     sharedType = yTextFactory(editor, doc),
   }: WithTestingElementsOptions = {}
 ) {
-  const { normalizeNode, isInline } = editor;
+  const { normalizeNode, isInline, isVoid } = editor;
 
   // normalizations needed for nested tests
   editor.normalizeNode = (entry) => {
@@ -39,6 +40,9 @@ export async function withTestingElements(
 
   editor.isInline = (element) =>
     INLINE_ELEMENTS.includes(element.type as string) || isInline(element);
+
+  editor.isVoid = (element) =>
+    VOID_ELEMENTS.includes(element.type as string) || isVoid(element);
 
   const e = withYHistory(withYjs(editor, sharedType, { autoConnect: true }));
 
