@@ -24,7 +24,7 @@ export const input = (
   <editor>
     <unstyled>
       <text>before </text>
-      <text>after</text>
+      <text italic>after</text>
     </unstyled>
   </editor>
 );
@@ -34,7 +34,7 @@ export const expected = (
     <unstyled>
       <text>before </text>
       <text bold>INSERT</text>
-      <text>after</text>
+      <text italic>after</text>
     </unstyled>
   </editor>
 );
