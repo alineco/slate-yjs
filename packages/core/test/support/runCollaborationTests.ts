@@ -34,12 +34,29 @@ async function runCollaborationTest({ module }: { module: FixtureModule }) {
     expectedRemoteSelection,
   } = module;
 
+  // Snapshot `input.children` before `withTestingElements` mutates the
+  // editor object — used to rebuild a normalized reference for the
+  // pre-run parity check below.
+  const inputChildrenSnapshot = structuredClone(input.children);
+
   // Setup 'local' editor
   const editor = await withTestingElements(input, { sharedType: yInput });
   assertDocumentAttachment(editor.sharedRoot);
 
   // Keep the 'local' editor state before applying run.
   const baseState = Y.encodeStateAsUpdateV2(editor.sharedRoot.doc);
+
+  // Setup 'streamed' editor: a remote peer that receives every Yjs
+  // update from the local doc as it happens, simulating a live
+  // connection rather than the one-shot replay further down.
+  const streamedDoc = new Y.Doc();
+  Y.applyUpdateV2(streamedDoc, baseState);
+  const streamed = await withTestingElements(createEditor(), {
+    doc: streamedDoc,
+  });
+  editor.sharedRoot.doc.on('updateV2', (update: Uint8Array) => {
+    Y.applyUpdateV2(streamedDoc, update);
+  });
 
   Editor.normalize(editor, { force: true });
 
@@ -49,6 +66,18 @@ async function runCollaborationTest({ module }: { module: FixtureModule }) {
       editor.children
     );
   }
+
+  // Before `run`, both editors must hold the input state. When `yInput`
+  // is provided the legacy yjs state overrides `input`, so we can only
+  // assert that streamed mirrors local. Local first: if it fails, the
+  // fixture is malformed, not the sync.
+  if (!yInput) {
+    const inputClone = createEditor();
+    inputClone.children = inputChildrenSnapshot;
+    const inputEditor = await withTestingElements(inputClone);
+    expect(editor.children).toEqual(inputEditor.children);
+  }
+  expect(streamed.children).toEqual(editor.children);
 
   for (const [key, point] of Object.entries(inputStoredPositions)) {
     const position = slatePointToRelativePosition(
@@ -62,9 +91,11 @@ async function runCollaborationTest({ module }: { module: FixtureModule }) {
   run(editor);
   editor.onChange();
 
-  // Verify editor is in expected state
+  // Verify editor is in expected state. Local first, then streamed —
+  // so a fixture bug surfaces before a sync bug.
   const expectedEditor = await withTestingElements(expected);
   expect(editor.children).toEqual(expectedEditor.children);
+  expect(streamed.children).toEqual(expectedEditor.children);
   if (expectedEditor.selection) {
     expect(editor.selection).toEqual(expectedEditor.selection);
   }
