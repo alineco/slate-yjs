@@ -151,4 +151,3 @@ export function run(editor: Editor) {
     });
   });
 }
-
