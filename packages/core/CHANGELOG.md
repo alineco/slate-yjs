@@ -1,5 +1,11 @@
 # @slate-yjs/core
 
+## 1.2.2
+
+### Patch Changes
+
+- [`adbc1b8`](https://github.com/BitPhinix/slate-yjs/commit/adbc1b8342ba965f173fdf836620b517eaa9ec9a) Thanks [@12joan](https://github.com/12joan)! - Fix a bug that occurs on Chromium and WebKit due to the implementation of those browsers' `Array.prototype.sort` functions differing from those of Firefox and Node. This resulted in inconsistent behaviour when sorting Yjs deltas using a compare function that did not obey the transitive property, causing deltas to be applied incorrectly in some cases.
+
 ## 1.2.1
 
 ### Patch Changes
