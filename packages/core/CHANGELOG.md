@@ -1,5 +1,11 @@
 # @slate-yjs/core
 
+## 1.2.3
+
+### Patch Changes
+
+- [`16f88cb`](https://github.com/BitPhinix/slate-yjs/commit/16f88cb5bc6629ea44f91ddda2dd7a8614512733) Thanks [@12joan](https://github.com/12joan)! - Ensure that if remote changes result in local Slate normalizations, these normalizations are correctly applied to Yjs.
+
 ## 1.2.2
 
 ### Patch Changes
