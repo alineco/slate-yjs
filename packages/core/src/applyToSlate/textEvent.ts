@@ -8,7 +8,7 @@ import {
   omitEmptyTextAttribute,
 } from '../utils/emptyText';
 import { ClonedSharedRoot } from '../utils/ClonedSharedRoot';
-import { getChangeType, yTextToInsertDelta } from '../utils/delta';
+import { sortDelta, yTextToInsertDelta } from '../utils/delta';
 import { getSlateTargetsInRange } from './getSlateTargetsInRange';
 import { getInsertMethod } from './getInsertMethod';
 
@@ -43,25 +43,17 @@ function applyDelta(
       )
     ).reverse();
 
-  const sortedReversedDelta = delta
-    .slice()
-    /**
-     * If the last child of a node is removed before a new node is inserted to
-     * replace it, this can result in the Slate selection being placed at the
-     * end of the previous text node instead of remaining in the current
-     * node. To avoid this, flip the order of insertions and deletions so that
-     * insertions are always performed first, while preserving the order of non-
-     * insert/delete pairs.
-     */
-    .sort((a, b) => {
-      const aType = getChangeType(a);
-      const bType = getChangeType(b);
-      if (aType === 'insert' && bType === 'delete') return 1;
-      if (aType === 'delete' && bType === 'insert') return -1;
-      return 0;
-    })
-    // Apply changes in reverse order to avoid path changes
-    .reverse();
+  /**
+   * If the last child of a node is removed before a new node is inserted to
+   * replace it, this can result in the Slate selection being placed at the end
+   * of the previous text node instead of remaining in the current node. To
+   * avoid this, flip the order of insertions and deletions so that insertions
+   * are always performed first, while preserving the order of non-insert/delete
+   * pairs.
+   *
+   * Apply changes in reverse order to avoid path changes.
+   */
+  const sortedReversedDelta = sortDelta(delta).reverse();
 
   sortedReversedDelta.forEach((change) => {
     if ('retain' in change) {
