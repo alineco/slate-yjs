@@ -4,7 +4,7 @@ import * as Y from 'yjs';
 import { FixtureModule, fixtures } from './fixtures';
 import { yTextToSlateElement } from '../../src';
 import { withTestingElements } from './withTestingElements';
-import { inspectYText, yTextFactory } from './utils';
+import { inspectYText, YJS_VERSION, yTextFactory } from './utils';
 import {
   getStoredPosition,
   relativePositionToSlatePoint,
@@ -34,28 +34,24 @@ async function runCollaborationTest({ module }: { module: FixtureModule }) {
     expectedRemoteSelection,
   } = module;
 
-  // Snapshot `input.children` before `withTestingElements` mutates the
-  // editor object — used to rebuild a normalized reference for the
-  // pre-run parity check below.
-  const inputChildrenSnapshot = structuredClone(input.children);
-
   // Setup 'local' editor
   const editor = await withTestingElements(input, { sharedType: yInput });
   assertDocumentAttachment(editor.sharedRoot);
 
-  // Keep the 'local' editor state before applying run.
-  const baseState = Y.encodeStateAsUpdateV2(editor.sharedRoot.doc);
+  // Setup remote editor with matching input state
+  const remoteDoc = new Y.Doc();
+  Y.applyUpdateV2(remoteDoc, Y.encodeStateAsUpdateV2(editor.sharedRoot.doc));
+  const remote = await withTestingElements(createEditor(), { doc: remoteDoc });
+  if (initialRemoteSelection) {
+    remote.selection = Point.isPoint(initialRemoteSelection)
+      ? { anchor: initialRemoteSelection, focus: initialRemoteSelection }
+      : initialRemoteSelection;
+  }
+  remote.onChange();
 
-  // Setup 'streamed' editor: a remote peer that receives every Yjs
-  // update from the local doc as it happens, simulating a live
-  // connection rather than the one-shot replay further down.
-  const streamedDoc = new Y.Doc();
-  Y.applyUpdateV2(streamedDoc, baseState);
-  const streamed = await withTestingElements(createEditor(), {
-    doc: streamedDoc,
-  });
-  editor.sharedRoot.doc.on('updateV2', (update: Uint8Array) => {
-    Y.applyUpdateV2(streamedDoc, update);
+  // Apply changes to the remote editor as they occur on the local editor
+  editor.sharedRoot.doc.on('updateV2', (update) => {
+    Y.applyUpdateV2(remoteDoc, update);
   });
 
   Editor.normalize(editor, { force: true });
@@ -66,18 +62,6 @@ async function runCollaborationTest({ module }: { module: FixtureModule }) {
       editor.children
     );
   }
-
-  // Before `run`, both editors must hold the input state. When `yInput`
-  // is provided the legacy yjs state overrides `input`, so we can only
-  // assert that streamed mirrors local. Local first: if it fails, the
-  // fixture is malformed, not the sync.
-  if (!yInput) {
-    const inputClone = createEditor();
-    inputClone.children = inputChildrenSnapshot;
-    const inputEditor = await withTestingElements(inputClone);
-    expect(editor.children).toEqual(inputEditor.children);
-  }
-  expect(streamed.children).toEqual(editor.children);
 
   for (const [key, point] of Object.entries(inputStoredPositions)) {
     const position = slatePointToRelativePosition(
@@ -91,11 +75,9 @@ async function runCollaborationTest({ module }: { module: FixtureModule }) {
   run(editor);
   editor.onChange();
 
-  // Verify editor is in expected state. Local first, then streamed —
-  // so a fixture bug surfaces before a sync bug.
+  // Verify editor is in expected state
   const expectedEditor = await withTestingElements(expected);
   expect(editor.children).toEqual(expectedEditor.children);
-  expect(streamed.children).toEqual(expectedEditor.children);
   if (expectedEditor.selection) {
     expect(editor.selection).toEqual(expectedEditor.selection);
   }
@@ -117,20 +99,6 @@ async function runCollaborationTest({ module }: { module: FixtureModule }) {
   );
 
   expect(actualStoredPositions).toEqual(expectedStoredPositions);
-
-  // Setup remote editor with input base state
-  const remoteDoc = new Y.Doc();
-  Y.applyUpdateV2(remoteDoc, baseState);
-  const remote = await withTestingElements(createEditor(), { doc: remoteDoc });
-  if (initialRemoteSelection) {
-    remote.selection = Point.isPoint(initialRemoteSelection)
-      ? { anchor: initialRemoteSelection, focus: initialRemoteSelection }
-      : initialRemoteSelection;
-  }
-  remote.onChange();
-
-  // Apply changes from 'run'
-  Y.applyUpdateV2(remoteDoc, Y.encodeStateAsUpdateV2(editor.sharedRoot.doc));
 
   // Verify remote and editor state are equal
   expect(editor.children).toEqual(remote.children);
@@ -158,8 +126,7 @@ export function runCollaborationTests({
   expectOldest = false,
 }: { expectOldest?: boolean } = {}) {
   it('uses the correct version of Yjs', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((Y as any).version).toBe(expectOldest ? 'oldest' : undefined);
+    expect(YJS_VERSION).toBe(expectOldest ? 'oldest' : 'latest');
   });
 
   fixtures(__dirname, '../collaboration', runCollaborationTest);

@@ -9,6 +9,5 @@ export const jsx = createHyperscript({
     'ul-li': { type: 'unordered-list-item' },
     link: { type: 'link' },
     'note-link': { type: 'note-link' },
-    marker: { type: 'marker' },
   },
 });
