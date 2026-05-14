@@ -183,8 +183,8 @@ export function withYjs<T extends Editor>(
   e.applyRemoteEvents = (events, origin) => {
     YjsEditor.flushLocalChanges(e);
 
-    YjsEditor.withOrigin(e, origin, () => {
-      Editor.withoutNormalizing(e, () => {
+    Editor.withoutNormalizing(e, () => {
+      YjsEditor.withOrigin(e, origin, () => {
         if (!clonedSharedRoot)
           throw new Error(
             'Cannot apply remote events before clonedSharedRoot is created'
@@ -193,6 +193,8 @@ export function withYjs<T extends Editor>(
         applyYjsEvents(clonedSharedRoot, e, events);
       });
     });
+
+    YjsEditor.flushLocalChanges(e);
   };
 
   e.isLocalOrigin = (origin) => origin === e.localOrigin;

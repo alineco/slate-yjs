@@ -16,6 +16,9 @@ interface RecursiveDeltaInsert extends Omit<DeltaInsert, 'insert'> {
 
 type RecursiveInsertDelta = RecursiveDeltaInsert[];
 
+export const YJS_VERSION =
+  'version' in Y && Y.version === 'oldest' ? 'oldest' : 'latest';
+
 export function inspectYText(yText: Y.XmlText): RecursiveDeltaInsert {
   const delta = yTextToInsertDelta(yText);
 

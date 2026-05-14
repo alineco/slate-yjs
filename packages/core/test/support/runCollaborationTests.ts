@@ -4,7 +4,7 @@ import * as Y from 'yjs';
 import { FixtureModule, fixtures } from './fixtures';
 import { yTextToSlateElement } from '../../src';
 import { withTestingElements } from './withTestingElements';
-import { inspectYText, yTextFactory } from './utils';
+import { inspectYText, YJS_VERSION, yTextFactory } from './utils';
 import {
   getStoredPosition,
   relativePositionToSlatePoint,
@@ -38,8 +38,21 @@ async function runCollaborationTest({ module }: { module: FixtureModule }) {
   const editor = await withTestingElements(input, { sharedType: yInput });
   assertDocumentAttachment(editor.sharedRoot);
 
-  // Keep the 'local' editor state before applying run.
-  const baseState = Y.encodeStateAsUpdateV2(editor.sharedRoot.doc);
+  // Setup remote editor with matching input state
+  const remoteDoc = new Y.Doc();
+  Y.applyUpdateV2(remoteDoc, Y.encodeStateAsUpdateV2(editor.sharedRoot.doc));
+  const remote = await withTestingElements(createEditor(), { doc: remoteDoc });
+  if (initialRemoteSelection) {
+    remote.selection = Point.isPoint(initialRemoteSelection)
+      ? { anchor: initialRemoteSelection, focus: initialRemoteSelection }
+      : initialRemoteSelection;
+  }
+  remote.onChange();
+
+  // Apply changes to the remote editor as they occur on the local editor
+  editor.sharedRoot.doc.on('updateV2', (update) => {
+    Y.applyUpdateV2(remoteDoc, update);
+  });
 
   Editor.normalize(editor, { force: true });
 
@@ -87,20 +100,6 @@ async function runCollaborationTest({ module }: { module: FixtureModule }) {
 
   expect(actualStoredPositions).toEqual(expectedStoredPositions);
 
-  // Setup remote editor with input base state
-  const remoteDoc = new Y.Doc();
-  Y.applyUpdateV2(remoteDoc, baseState);
-  const remote = await withTestingElements(createEditor(), { doc: remoteDoc });
-  if (initialRemoteSelection) {
-    remote.selection = Point.isPoint(initialRemoteSelection)
-      ? { anchor: initialRemoteSelection, focus: initialRemoteSelection }
-      : initialRemoteSelection;
-  }
-  remote.onChange();
-
-  // Apply changes from 'run'
-  Y.applyUpdateV2(remoteDoc, Y.encodeStateAsUpdateV2(editor.sharedRoot.doc));
-
   // Verify remote and editor state are equal
   expect(editor.children).toEqual(remote.children);
   expect(inspectYText(remote.sharedRoot)).toEqual(inspectYText(yExpected));
@@ -127,8 +126,7 @@ export function runCollaborationTests({
   expectOldest = false,
 }: { expectOldest?: boolean } = {}) {
   it('uses the correct version of Yjs', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((Y as any).version).toBe(expectOldest ? 'oldest' : undefined);
+    expect(YJS_VERSION).toBe(expectOldest ? 'oldest' : 'latest');
   });
 
   fixtures(__dirname, '../collaboration', runCollaborationTest);

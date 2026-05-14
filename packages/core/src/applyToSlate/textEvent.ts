@@ -1,9 +1,12 @@
-import { Editor, Path, Text, Transforms } from 'slate';
+import { Editor, Node, Path, Text, Transforms } from 'slate';
 import * as Y from 'yjs';
 import { Delta } from '../model/types';
 import { deltaInsertToSlateNode } from '../utils/convert';
-import { getSlatePath } from '../utils/location';
-import { omitEmptyTextAttribute } from '../utils/emptyText';
+import { getSlateNodeYLength, getSlatePath } from '../utils/location';
+import {
+  isDeltaInsertEmptyText,
+  omitEmptyTextAttribute,
+} from '../utils/emptyText';
 import { ClonedSharedRoot } from '../utils/ClonedSharedRoot';
 import { sortDelta, yTextToInsertDelta } from '../utils/delta';
 import { getSlateTargetsInRange } from './getSlateTargetsInRange';
@@ -88,17 +91,53 @@ function applyDelta(
 
     if ('insert' in change) {
       const { insert, attributes = {} } = change;
-      const { method, at } = getInsertMethod(
+      const insertMethodInfo = getInsertMethod(
         editor,
         parentPath,
         yParentDelta,
         yOffset,
         attributes
       );
+      const { method } = insertMethodInfo;
+      let { at } = insertMethodInfo;
 
       if (typeof insert === 'string' && method === 'insertText') {
         Transforms.insertText(editor, insert, { at });
         return;
+      }
+
+      /**
+       * If we're inserting an empty text node, check if there's already an
+       * empty text node immediately prior to the insertion point that is
+       * lacking a corresponding empty text character in Yjs. If so, we remove
+       * this prior empty text node so that the resulting number of empty text
+       * nodes matches the number of empty text characters in Yjs.
+       *
+       * This prevents issues where Yjs expects one empty text node but Slate
+       * contains two, resulting in Slate's default normalizations removing the
+       * extra text node and causing unexpected changes to the Yjs value.
+       */
+      if (
+        Path.isPath(at) &&
+        Path.hasPrevious(at) &&
+        isDeltaInsertEmptyText(change)
+      ) {
+        const previousPath = Path.previous(at);
+        const previousNode = Node.get(editor, previousPath);
+        const previousYOffset = yOffset - 1;
+
+        if (
+          Text.isText(previousNode) &&
+          previousNode.text.length === 0 &&
+          // Check if the previous text node lacks an empty text character
+          getSlateNodeYLength(previousNode, {
+            yParentDelta,
+            yOffset: previousYOffset,
+          }) === 0
+        ) {
+          Transforms.removeNodes(editor, { at: previousPath });
+          at = previousPath;
+        }
       }
 
       const toInsert = deltaInsertToSlateNode(change);
