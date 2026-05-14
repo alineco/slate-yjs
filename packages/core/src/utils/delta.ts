@@ -1,11 +1,35 @@
 import * as Y from 'yjs';
-import { ChangeType, Delta, DeltaInsert, InsertDelta } from '../model/types';
+import { Delta, DeltaDelete, DeltaInsert, InsertDelta } from '../model/types';
 import { deepEquals } from './object';
 
-export function getChangeType(delta: Delta[number]): ChangeType {
-  if ('insert' in delta) return 'insert';
-  if ('delete' in delta) return 'delete';
-  return 'retain';
+/**
+ * Reorder mixed runs of insertions and deletions to put the deletions first.
+ */
+export function sortDelta(delta: Delta) {
+  const sortedDelta: Delta = [];
+  let deletions: DeltaDelete[] = [];
+  let insertions: DeltaInsert[] = [];
+
+  function flush() {
+    sortedDelta.push(...deletions);
+    sortedDelta.push(...insertions);
+    deletions = [];
+    insertions = [];
+  }
+
+  for (const change of delta) {
+    if ('insert' in change) {
+      insertions.push(change);
+    } else if ('delete' in change) {
+      deletions.push(change);
+    } else {
+      flush();
+      sortedDelta.push(change);
+    }
+  }
+
+  flush();
+  return sortedDelta;
 }
 
 export function normalizeInsertDelta(delta: InsertDelta): InsertDelta {
