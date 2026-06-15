@@ -17,6 +17,11 @@ export type Delta = Array<
   DeltaRetain | DeltaDelete | DeltaInsert | DeltaAttributes
 >;
 
+export interface RecursiveDeltaInsert extends Omit<DeltaInsert, 'insert'> {
+  insert: string | RecursiveInsertDelta | RecursiveDeltaInsert;
+}
+export type RecursiveInsertDelta = Array<RecursiveDeltaInsert>;
+
 export type TextRange = { start: number; end: number };
 
 export type HistoryStackItem = {

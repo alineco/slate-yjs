@@ -1,4 +1,3 @@
-import { RelativeRange } from './model/types';
 import {
   CursorEditor,
   CursorState,
@@ -20,6 +19,7 @@ import {
   slatePointToRelativePosition,
   slateRangeToRelativeRange,
 } from './utils/position';
+import { inspectYText } from './utils/yjs';
 
 export {
   withYjs,
@@ -37,11 +37,13 @@ export {
   RemoteCursorChangeEventListener,
   CursorStateChangeEvent,
   // Utils
-  RelativeRange,
   yTextToSlateElement,
   slateNodesToInsertDelta,
   slateRangeToRelativeRange,
   relativeRangeToSlateRange,
   slatePointToRelativePosition,
   relativePositionToSlatePoint,
+  inspectYText,
 };
+
+export type * from './model/types';

@@ -4,14 +4,14 @@ import * as Y from 'yjs';
 import { FixtureModule, fixtures } from './fixtures';
 import { yTextToSlateElement } from '../../src';
 import { withTestingElements } from './withTestingElements';
-import { inspectYText, YJS_VERSION, yTextFactory } from './utils';
+import { YJS_VERSION, yTextFactory } from './utils';
 import {
   getStoredPosition,
   relativePositionToSlatePoint,
   setStoredPosition,
   slatePointToRelativePosition,
 } from '../../src/utils/position';
-import { assertDocumentAttachment } from '../../src/utils/yjs';
+import { assertDocumentAttachment, inspectYText } from '../../src/utils/yjs';
 
 async function normalizedSlateDoc(sharedRoot: Y.XmlText) {
   const editor = createEditor();
