@@ -1,11 +1,7 @@
 import * as Y from 'yjs';
 import { DeltaInsert, InsertDelta } from '../model/types';
+import { EMPTY_TEXT_PREFIX } from './constants';
 
-/**
- * Represent empty text nodes using a character with a special attribute, since
- * Yjs doesn't support storing attributes on empty insertions.
- */
-export const EMPTY_TEXT_PREFIX = '__slateYjsEmptyText_';
 const EMPTY_TEXT_CHAR = '\u200b'; // zero-width space
 
 export function isEmptyTextAttribute(key: string) {

@@ -4,8 +4,7 @@ import { InsertDelta, RelativeRange, TextRange } from '../model/types';
 import { getInsertDeltaLength, yTextToInsertDelta } from './delta';
 import { getSlatePath, getYTarget, yOffsetToSlateOffsets } from './location';
 import { assertDocumentAttachment } from './yjs';
-
-export const STORED_POSITION_PREFIX = '__slateYjsStoredPosition_';
+import { STORED_POSITION_PREFIX } from './constants';
 
 /**
  * Map from path string -> key -> absolute position.
