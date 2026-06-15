@@ -1,5 +1,11 @@
 # @slate-yjs/core
 
+## 1.3.0
+
+### Minor Changes
+
+- [`8dd85dc`](https://github.com/BitPhinix/slate-yjs/commit/8dd85dc427b27077eeb630f98bfd12aacec76e9f) Thanks [@12joan](https://github.com/12joan)! - Export the `inspectYText` utility function (previously used only in testing code)
+
 ## 1.2.3
 
 ### Patch Changes
