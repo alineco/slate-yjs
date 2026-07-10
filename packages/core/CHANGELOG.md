@@ -1,5 +1,11 @@
 # @slate-yjs/core
 
+## 1.3.1
+
+### Patch Changes
+
+- [`285b53e`](https://github.com/BitPhinix/slate-yjs/commit/285b53ed9ffc7bf054a257fa9a18cf230fada32c) Thanks [@12joan](https://github.com/12joan)! - Fix incorrect insertion location when inserting an inline element before a newly inserted empty text node
+
 ## 1.3.0
 
 ### Minor Changes
