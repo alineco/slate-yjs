@@ -32,6 +32,7 @@ async function runCollaborationTest({ module }: { module: FixtureModule }) {
     yExpected = yTextFactory(expected),
     expectedStoredPositions = {},
     expectedRemoteSelection,
+    bidirectionalSync = false,
   } = module;
 
   // Setup 'local' editor
@@ -53,6 +54,14 @@ async function runCollaborationTest({ module }: { module: FixtureModule }) {
   editor.sharedRoot.doc.on('updateV2', (update) => {
     Y.applyUpdateV2(remoteDoc, update);
   });
+
+  // If bidirectional sync is enabled, apply changes in the other direction too
+  if (bidirectionalSync) {
+    remoteDoc.on('updateV2', (update) => {
+      assertDocumentAttachment(editor.sharedRoot);
+      Y.applyUpdateV2(editor.sharedRoot.doc, update);
+    });
+  }
 
   Editor.normalize(editor, { force: true });
 

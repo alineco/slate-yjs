@@ -6,15 +6,66 @@ import { describe, it } from 'vitest';
 import chalk from 'chalk';
 
 export interface FixtureModule {
-  input: Editor;
-  yInput?: Y.XmlText;
-  inputStoredPositions?: Record<string, Point>;
-  initialRemoteSelection?: Range | Point;
-  expected: Editor;
-  yExpected?: Y.XmlText;
-  expectedStoredPositions?: Record<string, Point | null>;
-  expectedRemoteSelection?: Range | Point;
+  /**
+   * The transformation to perform on the local Slate editor for the purpose of
+   * the test.
+   */
   run: (e: Editor) => void;
+
+  /**
+   * The initial Slate state of the local and remote editors.
+   */
+  input: Editor;
+
+  /**
+   * The expected final Slate state of the local and remote editors.
+   */
+  expected: Editor;
+
+  /**
+   * Optionally override the initial Yjs state. By default, this is derived from
+   * the initial Slate state.
+   */
+  yInput?: Y.XmlText;
+
+  /**
+   * Optionally override the expected final Yjs state.
+   */
+  yExpected?: Y.XmlText;
+
+  /**
+   * The set of stored positions to maintain during the test. The value of each
+   * position can be asserted on using expectedStoredPositions.
+   */
+  inputStoredPositions?: Record<string, Point>;
+  expectedStoredPositions?: Record<string, Point | null>;
+
+  /**
+   * Optionally override the initial Slate selection of the remote editor. By
+   * default, the initial selection of the remote editor is null. The final
+   * remote selection can be asserted on using expectedRemoteSelection.
+   */
+  initialRemoteSelection?: Range | Point;
+  expectedRemoteSelection?: Range | Point;
+
+  /**
+   * Whether the test should also apply changes from the remote editor to the
+   * local editor, typically in the case where normalizations must be applied on
+   * the remote editor due to a Slate mismatch.
+   *
+   * This defaults to false since in most cases, a unidirectional sync should be
+   * sufficient to synchronize the local and remote editors. Generally, this
+   * should only be enabled when a Slate mismatch is expected, such as in some
+   * tests relating to legacy empty text nodes.
+   */
+  bidirectionalSync?: boolean;
+
+  /**
+   * Optionally skip a test. If a string is passed, the test will be skipped
+   * unconditionally and the given message will be displayed. If a function is
+   * passed, the test will only be skipped if that function returns a string
+   * message.
+   */
   skip?: string | (() => string | null);
 }
 

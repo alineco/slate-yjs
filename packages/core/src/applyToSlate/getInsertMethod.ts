@@ -1,5 +1,5 @@
 import { Editor, Node, Path, Point, Text } from 'slate';
-import { InsertDelta } from '../model/types';
+import { DeltaInsert, InsertDelta } from '../model/types';
 import { getSlateNodeYLength } from '../utils/location';
 import { deepEquals } from '../utils/object';
 import { getProperties } from '../utils/slate';
@@ -16,29 +16,34 @@ type InsertMethod =
  * Determine whether an insert delta should be performed using insertText or
  * insertNode, and at what point or path.
  */
-export function getInsertMethod(
-  editor: Editor,
-  parentPath: Path,
-  yParentDelta: InsertDelta,
-  yOffset: number,
-  attributes: Record<string, unknown>
-): InsertMethod {
+export function getInsertMethod({
+  editor,
+  parentPath,
+  yParentDelta,
+  yOffset,
+  maximumPath,
+  change: { insert, attributes = {} },
+}: {
+  editor: Editor;
+  parentPath: Path;
+  yParentDelta: InsertDelta;
+  yOffset: number;
+  maximumPath: Path | null;
+  change: DeltaInsert;
+}): InsertMethod {
   const properties = omitEmptyTextAttribute(attributes);
-  const isInsertEmptyText = hasEmptyTextAttribute(attributes);
+  const isInsertText = typeof insert === 'string';
+  const isInsertEmptyText = isInsertText && hasEmptyTextAttribute(attributes);
   const children = Array.from(Node.children(editor, parentPath));
 
   let currentOffset = 0;
-
-  const getYLength = (node: Node) =>
-    getSlateNodeYLength(node, {
-      yParentDelta,
-      yOffset: currentOffset,
-    });
 
   /**
    * Determine whether inserting into a given node using insertText is valid.
    */
   const isValidInsertionNode = (node: Node, yLength: number): boolean => {
+    if (!isInsertText) return false;
+
     // We cannot insert text into a non-text node
     if (!Text.isText(node)) return false;
 
@@ -62,7 +67,24 @@ export function getInsertMethod(
   };
 
   for (const [node, path] of children) {
-    const yLength = getYLength(node);
+    if (maximumPath && Path.isAfter(path, maximumPath)) continue;
+
+    /**
+     * If this were called on an empty text node that was previously inserted as
+     * part of the same text event, it may incorrectly report that text node's
+     * yLength as 0 even if an empty text character exists for it. This is
+     * because we use the yParentDelta prior to the text event, which does not
+     * yet contain this empty text character.
+     *
+     * To ensure that this case never arises, we use maximumPath to track the
+     * path of the most recently inserted node. Since nodes are inserted in
+     * reverse order, we should never need to insert a node past this path.
+     */
+    const yLength = getSlateNodeYLength(node, {
+      yParentDelta,
+      yOffset: currentOffset,
+    });
+
     let isFirstCandidate = false;
 
     if (currentOffset < yOffset) {
@@ -101,8 +123,9 @@ export function getInsertMethod(
        * If we reach a non-empty node after the first candidate, there are no
        * more insertion candidates, so insert just before this non-empty node.
        */
-      if (!isFirstCandidate && yLength > 0)
+      if (!isFirstCandidate && yLength > 0) {
         return { method: 'insertNode', at: path };
+      }
     }
   }
 
@@ -110,5 +133,8 @@ export function getInsertMethod(
    * None of the children were valid insertion targets, so insert after the last
    * child.
    */
-  return { method: 'insertNode', at: [...parentPath, children.length] };
+  return {
+    method: 'insertNode',
+    at: maximumPath ?? [...parentPath, children.length],
+  };
 }

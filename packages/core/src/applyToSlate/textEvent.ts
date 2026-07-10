@@ -32,6 +32,8 @@ function applyDelta(
     return length;
   }, 0);
 
+  let lastInsertedPath: Path | null = null;
+
   const getTargetsInRange = (yLength: number) =>
     Array.from(
       getSlateTargetsInRange(
@@ -90,14 +92,15 @@ function applyDelta(
     }
 
     if ('insert' in change) {
-      const { insert, attributes = {} } = change;
-      const insertMethodInfo = getInsertMethod(
+      const { insert = {} } = change;
+      const insertMethodInfo = getInsertMethod({
         editor,
         parentPath,
         yParentDelta,
         yOffset,
-        attributes
-      );
+        maximumPath: lastInsertedPath,
+        change,
+      });
       const { method } = insertMethodInfo;
       let { at } = insertMethodInfo;
 
@@ -142,6 +145,15 @@ function applyDelta(
 
       const toInsert = deltaInsertToSlateNode(change);
       Transforms.insertNodes(editor, toInsert, { at });
+
+      // Determine the path of the newly inserted node
+      if (Path.isPath(at)) {
+        lastInsertedPath = at;
+      } else if (at.offset === 0) {
+        lastInsertedPath = at.path;
+      } else {
+        lastInsertedPath = Path.next(at.path);
+      }
     }
   });
 }
