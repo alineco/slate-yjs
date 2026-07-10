@@ -1,126 +1,569 @@
 /** @jsx jsx */
 import { describe, it, expect } from 'vitest';
-import { Descendant, Editor } from 'slate';
+import { Editor, Node } from 'slate';
 import { jsx } from '../support/jsx';
 import { yTextFactory } from '../support/utils';
 import { yTextToInsertDelta } from '../../src/utils/delta';
 import { getInsertMethod } from '../../src/applyToSlate/getInsertMethod';
 
 describe('getInsertMethod', () => {
-  const beforeLegacyEmptyTextNodes: Descendant[] = (
-    <fragment>
-      {/* 0 */}
-      <text>one</text>
-      {/* 3 */}
-      <text>two</text>
-      {/* 6 */}
-      <text bold>three</text>
-      {/* 11 */}
-      <text />
-      {/* 12 */}
-      <text italic />
-      {/* 13 */}
-      <text italic>four</text>
-      {/* 17 */}
-      <link />
-      {/* 18 */}
-    </fragment>
-  );
+  describe('inserting text', () => {
+    describe('inserting as text into matching non-empty text nodes or legacy empty text nodes', () => {
+      it('inserts into matching non-empty text node surrounding the offset', () => {
+        const editor: Editor = (
+          <editor>
+            <unstyled>
+              <text>one</text>
+              <text bold>two</text>
+              <text>three</text>
+            </unstyled>
+          </editor>
+        );
 
-  const editor: Editor = (
-    <editor>
-      <unstyled>
-        {beforeLegacyEmptyTextNodes}
-        {/* 18 */}
-        <text />
-        <text />
-        <text bold />
-        <text bold />
-        {/* 18 */}
-        <link />
-        {/* 19 */}
-        <text italic />
-      </unstyled>
-    </editor>
-  );
+        const yParentDelta = yTextToInsertDelta(
+          yTextFactory(Node.ancestor(editor, [0]))
+        );
 
-  const yParentDelta = yTextToInsertDelta(
-    yTextFactory(beforeLegacyEmptyTextNodes)
-  );
+        const result = getInsertMethod({
+          editor,
+          parentPath: [0],
+          yParentDelta,
+          yOffset: 'onetw'.length,
+          maximumPath: null,
+          change: {
+            insert: 'x',
+            attributes: { bold: true },
+          },
+        });
 
-  it('inserts into matching non-empty text node before offset', () => {
-    const result = getInsertMethod(editor, [0], yParentDelta, 3, {});
-    expect(result).toEqual({
-      method: 'insertText',
-      at: { path: [0, 0], offset: 3 },
+        expect(result).toEqual({
+          method: 'insertText',
+          at: { path: [0, 1], offset: 2 },
+        });
+      });
+
+      it('inserts into matching non-empty text node before the offset', () => {
+        const editor: Editor = (
+          <editor>
+            <unstyled>
+              <text>one</text>
+              <text>two</text>
+            </unstyled>
+          </editor>
+        );
+
+        const yParentDelta = yTextToInsertDelta(
+          yTextFactory(Node.ancestor(editor, [0]))
+        );
+
+        const result = getInsertMethod({
+          editor,
+          parentPath: [0],
+          yParentDelta,
+          yOffset: 'one'.length,
+          maximumPath: null,
+          change: {
+            insert: 'x',
+          },
+        });
+
+        expect(result).toEqual({
+          method: 'insertText',
+          at: { path: [0, 0], offset: 3 },
+        });
+      });
+
+      it('inserts into matching non-empty text node after the offset', () => {
+        const editor: Editor = (
+          <editor>
+            <unstyled>
+              <text>one</text>
+              <text bold>two</text>
+            </unstyled>
+          </editor>
+        );
+
+        const yParentDelta = yTextToInsertDelta(
+          yTextFactory(Node.ancestor(editor, [0]))
+        );
+
+        const result = getInsertMethod({
+          editor,
+          parentPath: [0],
+          yParentDelta,
+          yOffset: 'one'.length,
+          maximumPath: null,
+          change: {
+            insert: 'x',
+            attributes: { bold: true },
+          },
+        });
+
+        expect(result).toEqual({
+          method: 'insertText',
+          at: { path: [0, 1], offset: 0 },
+        });
+      });
+
+      it('inserts into the first matching legacy empty text node at the offset', () => {
+        const editor: Editor = (
+          <editor>
+            <unstyled>
+              <text>one</text>
+              <text bold />
+              <text italic />
+              <text underline />
+              <text bold />
+              <text italic />
+              <text underline />
+              <text>two</text>
+            </unstyled>
+          </editor>
+        );
+
+        const yParentDelta = yTextToInsertDelta(
+          yTextFactory(
+            <fragment>
+              <text>one</text>
+              {/* No empty text nodes since they're legacy */}
+              <text>two</text>
+            </fragment>
+          )
+        );
+
+        const result = getInsertMethod({
+          editor,
+          parentPath: [0],
+          yParentDelta,
+          yOffset: 'one'.length,
+          maximumPath: null,
+          change: {
+            insert: 'x',
+            attributes: { underline: true },
+          },
+        });
+
+        expect(result).toEqual({
+          method: 'insertText',
+          at: { path: [0, 3], offset: 0 },
+        });
+      });
+    });
+
+    describe('inserting as node when no non-empty text nodes or legacy empty text nodes match', () => {
+      it('splits a non-matching non-empty text node surrounding the offset', () => {
+        const editor: Editor = (
+          <editor>
+            <unstyled>
+              <text>one</text>
+              <text bold>two</text>
+              <text>three</text>
+            </unstyled>
+          </editor>
+        );
+
+        const yParentDelta = yTextToInsertDelta(
+          yTextFactory(Node.ancestor(editor, [0]))
+        );
+
+        const result = getInsertMethod({
+          editor,
+          parentPath: [0],
+          yParentDelta,
+          yOffset: 'onetw'.length,
+          maximumPath: null,
+          change: {
+            insert: 'x',
+          },
+        });
+
+        expect(result).toEqual({
+          method: 'insertNode',
+          at: { path: [0, 1], offset: 2 },
+        });
+      });
+
+      it('inserts as node at the offset when no text nodes match', () => {
+        const editor: Editor = (
+          <editor>
+            <unstyled>
+              <text>one</text>
+              <text bold>two</text>
+            </unstyled>
+          </editor>
+        );
+
+        const yParentDelta = yTextToInsertDelta(
+          yTextFactory(Node.ancestor(editor, [0]))
+        );
+
+        const result = getInsertMethod({
+          editor,
+          parentPath: [0],
+          yParentDelta,
+          yOffset: 'one'.length,
+          maximumPath: null,
+          change: {
+            insert: 'x',
+            attributes: { italic: true },
+          },
+        });
+
+        expect(result).toEqual({ method: 'insertNode', at: [0, 1] });
+      });
+
+      it('does not insert into an empty text node before the offset even if it matches', () => {
+        const editor: Editor = (
+          <editor>
+            <unstyled>
+              <text bold />
+              <text>two</text>
+            </unstyled>
+          </editor>
+        );
+
+        const yParentDelta = yTextToInsertDelta(
+          yTextFactory(Node.ancestor(editor, [0]))
+        );
+
+        const result = getInsertMethod({
+          editor,
+          parentPath: [0],
+          yParentDelta,
+          yOffset: 1,
+          maximumPath: null,
+          change: {
+            insert: 'x',
+            attributes: { bold: true },
+          },
+        });
+
+        expect(result).toEqual({ method: 'insertNode', at: [0, 1] });
+      });
+
+      it('does not insert into an empty text node after the offset even if it matches', () => {
+        const editor: Editor = (
+          <editor>
+            <unstyled>
+              <text bold>one</text>
+              <text />
+            </unstyled>
+          </editor>
+        );
+
+        const yParentDelta = yTextToInsertDelta(
+          yTextFactory(Node.ancestor(editor, [0]))
+        );
+
+        const result = getInsertMethod({
+          editor,
+          parentPath: [0],
+          yParentDelta,
+          yOffset: 'one'.length,
+          maximumPath: null,
+          change: {
+            insert: 'x',
+          },
+        });
+
+        expect(result).toEqual({ method: 'insertNode', at: [0, 1] });
+      });
+
+      it('inserts as node after the last legacy empty text node if none of the matches', () => {
+        const editor: Editor = (
+          <editor>
+            <unstyled>
+              <text>one</text>
+              <text bold />
+              <text italic />
+              <text underline />
+              <text bold />
+              <text italic />
+              <text underline />
+              <text>two</text>
+            </unstyled>
+          </editor>
+        );
+
+        const yParentDelta = yTextToInsertDelta(
+          yTextFactory(
+            <fragment>
+              <text>one</text>
+              {/* No empty text nodes since they're legacy */}
+              <text>two</text>
+            </fragment>
+          )
+        );
+
+        const result = getInsertMethod({
+          editor,
+          parentPath: [0],
+          yParentDelta,
+          maximumPath: null,
+          yOffset: 'one'.length,
+          change: {
+            insert: 'x',
+            attributes: { bold: true, italic: true },
+          },
+        });
+
+        expect(result).toEqual({ method: 'insertNode', at: [0, 7] });
+      });
+
+      it('inserts as node after the last node if the last node does not match', () => {
+        const editor: Editor = (
+          <editor>
+            <unstyled>
+              <text bold>one</text>
+              <text>two</text>
+            </unstyled>
+          </editor>
+        );
+
+        const yParentDelta = yTextToInsertDelta(
+          yTextFactory(Node.ancestor(editor, [0]))
+        );
+
+        const result = getInsertMethod({
+          editor,
+          parentPath: [0],
+          yParentDelta,
+          yOffset: 'onetwo'.length,
+          maximumPath: null,
+          change: {
+            insert: 'x',
+            attributes: { bold: true },
+          },
+        });
+
+        expect(result).toEqual({ method: 'insertNode', at: [0, 2] });
+      });
     });
   });
 
-  it('inserts into matching non-empty text node after offset', () => {
-    const result = getInsertMethod(editor, [0], yParentDelta, 6, {
-      bold: true,
-    });
-    expect(result).toEqual({
-      method: 'insertText',
-      at: { path: [0, 2], offset: 0 },
-    });
-  });
+  describe('inserting an inline element', () => {
+    it('splits a non-empty text node surrounding the offset', () => {
+      const editor: Editor = (
+        <editor>
+          <unstyled>
+            <text>one</text>
+            <text bold>two</text>
+            <text>three</text>
+          </unstyled>
+        </editor>
+      );
 
-  it('inserts as node at offset', () => {
-    const result = getInsertMethod(editor, [0], yParentDelta, 6, {
-      italic: true,
-    });
-    expect(result).toEqual({
-      method: 'insertNode',
-      at: [0, 2],
-    });
-  });
+      const yParentDelta = yTextToInsertDelta(
+        yTextFactory(Node.ancestor(editor, [0]))
+      );
 
-  it('does not insert into matching empty text node after offset', () => {
-    const result = getInsertMethod(editor, [0], yParentDelta, 11, {});
-    expect(result).toEqual({
-      method: 'insertNode',
-      at: [0, 3],
-    });
-  });
+      const result = getInsertMethod({
+        editor,
+        parentPath: [0],
+        yParentDelta,
+        yOffset: 'onetw'.length,
+        maximumPath: null,
+        change: {
+          insert: yTextFactory(<link>click me</link>),
+        },
+      });
 
-  it('does not insert into matching empty text node before offset', () => {
-    const result = getInsertMethod(editor, [0], yParentDelta, 13, {
-      italic: true,
+      expect(result).toEqual({
+        method: 'insertNode',
+        at: { path: [0, 1], offset: 2 },
+      });
     });
-    expect(result).toEqual({
-      method: 'insertText',
-      at: { path: [0, 5], offset: 0 },
-    });
-  });
 
-  it('inserts into first matching legacy empty text node at offset', () => {
-    const result = getInsertMethod(editor, [0], yParentDelta, 18, {
-      bold: true,
-    });
-    expect(result).toEqual({
-      method: 'insertText',
-      at: { path: [0, 9], offset: 0 },
-    });
-  });
+    it('inserts between two non-empty text nodes', () => {
+      const editor: Editor = (
+        <editor>
+          <unstyled>
+            <text>one</text>
+            <text>two</text>
+          </unstyled>
+        </editor>
+      );
 
-  it('does not insert into non-matching legacy text node separated by non-empty text node', () => {
-    const result = getInsertMethod(editor, [0], yParentDelta, 18, {
-      italic: true,
-    });
-    expect(result).toEqual({
-      method: 'insertNode',
-      at: [0, 11],
-    });
-  });
+      const yParentDelta = yTextToInsertDelta(
+        yTextFactory(Node.ancestor(editor, [0]))
+      );
 
-  it('inserts after the last child', () => {
-    const result = getInsertMethod(editor, [0], yParentDelta, 19, {
-      bold: true,
+      const result = getInsertMethod({
+        editor,
+        parentPath: [0],
+        yParentDelta,
+        yOffset: 'one'.length,
+        maximumPath: null,
+        change: {
+          insert: yTextFactory(<link>click me</link>),
+        },
+      });
+
+      expect(result).toEqual({ method: 'insertNode', at: [0, 1] });
     });
-    expect(result).toEqual({
-      method: 'insertNode',
-      at: [0, 13],
+
+    it('inserts between a non-empty and an empty text node', () => {
+      const editor: Editor = (
+        <editor>
+          <unstyled>
+            <text>one</text>
+            <text />
+          </unstyled>
+        </editor>
+      );
+
+      const yParentDelta = yTextToInsertDelta(
+        yTextFactory(Node.ancestor(editor, [0]))
+      );
+
+      const result = getInsertMethod({
+        editor,
+        parentPath: [0],
+        yParentDelta,
+        yOffset: 'one'.length,
+        maximumPath: null,
+        change: {
+          insert: yTextFactory(<link>click me</link>),
+        },
+      });
+
+      expect(result).toEqual({ method: 'insertNode', at: [0, 1] });
+    });
+
+    it('inserts between an empty and a non-empty text node', () => {
+      const editor: Editor = (
+        <editor>
+          <unstyled>
+            <text />
+            <text>two</text>
+          </unstyled>
+        </editor>
+      );
+
+      const yParentDelta = yTextToInsertDelta(
+        yTextFactory(Node.ancestor(editor, [0]))
+      );
+
+      const result = getInsertMethod({
+        editor,
+        parentPath: [0],
+        yParentDelta,
+        yOffset: 1,
+        maximumPath: null,
+        change: {
+          insert: yTextFactory(<link>click me</link>),
+        },
+      });
+
+      expect(result).toEqual({ method: 'insertNode', at: [0, 1] });
+    });
+
+    it('inserts between two empty text nodes', () => {
+      const editor: Editor = (
+        <editor>
+          <unstyled>
+            <text />
+            <text />
+          </unstyled>
+        </editor>
+      );
+
+      const yParentDelta = yTextToInsertDelta(
+        yTextFactory(Node.ancestor(editor, [0]))
+      );
+
+      const result = getInsertMethod({
+        editor,
+        parentPath: [0],
+        yParentDelta,
+        yOffset: 1,
+        maximumPath: null,
+        change: {
+          insert: yTextFactory(<link>click me</link>),
+        },
+      });
+
+      expect(result).toEqual({ method: 'insertNode', at: [0, 1] });
+    });
+
+    it('inserts after the last legacy empty text node', () => {
+      const editor: Editor = (
+        <editor>
+          <unstyled>
+            <text>one</text>
+            <text bold />
+            <text italic />
+            <text underline />
+            <text bold />
+            <text italic />
+            <text underline />
+            <text>two</text>
+          </unstyled>
+        </editor>
+      );
+
+      const yParentDelta = yTextToInsertDelta(
+        yTextFactory(
+          <fragment>
+            <text>one</text>
+            {/* No empty text nodes since they're legacy */}
+            <text>two</text>
+          </fragment>
+        )
+      );
+
+      const result = getInsertMethod({
+        editor,
+        parentPath: [0],
+        yParentDelta,
+        yOffset: 'one'.length,
+        maximumPath: null,
+        change: {
+          insert: yTextFactory(<link>click me</link>),
+        },
+      });
+
+      expect(result).toEqual({ method: 'insertNode', at: [0, 7] });
+    });
+
+    it('does not insert past maximumPath', () => {
+      const editor: Editor = (
+        <editor>
+          <unstyled>
+            <text>one</text>
+            <text bold />
+            <text italic />
+            <text underline />
+            <text bold />
+            <text italic />
+            <text underline />
+            <text>two</text>
+          </unstyled>
+        </editor>
+      );
+
+      const yParentDelta = yTextToInsertDelta(
+        yTextFactory(
+          <fragment>
+            <text>one</text>
+            {/* No empty text nodes since they're legacy */}
+            <text>two</text>
+          </fragment>
+        )
+      );
+
+      const result = getInsertMethod({
+        editor,
+        parentPath: [0],
+        yParentDelta,
+        yOffset: 'one'.length,
+        maximumPath: [0, 3],
+        change: {
+          insert: yTextFactory(<link>click me</link>),
+        },
+      });
+
+      expect(result).toEqual({ method: 'insertNode', at: [0, 3] });
     });
   });
 });
