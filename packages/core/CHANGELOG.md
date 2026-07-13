@@ -1,5 +1,11 @@
 # @slate-yjs/core
 
+## 1.3.2
+
+### Patch Changes
+
+- [`18ddfa5`](https://github.com/BitPhinix/slate-yjs/commit/18ddfa5c9b51d12e2b168441d83c51beef7f6f53) Thanks [@12joan](https://github.com/12joan)! - Improve error messages for frequently occurring errors
+
 ## 1.3.1
 
 ### Patch Changes
