@@ -1,4 +1,4 @@
-import { Ancestor, Node, Path, Text } from 'slate';
+import { Ancestor, Node, Path, Scrubber, Text } from 'slate';
 import * as Y from 'yjs';
 import { InsertDelta, YTarget } from '../model/types';
 import {
@@ -7,6 +7,7 @@ import {
   yTextToInsertDelta,
 } from './delta';
 import { isDeltaInsertEmptyText } from './emptyText';
+import { inspectYText } from './yjs';
 
 export interface GetSlateNodeYLengthOptions {
   yParentDelta?: InsertDelta;
@@ -74,7 +75,11 @@ export function getYTarget(
 
   const targetDelta = sliceInsertDelta(delta, yOffset, targetLength);
   if (targetDelta.length > 1) {
-    throw new Error("Path doesn't match yText, yTarget spans multiple nodes");
+    throw new Error(
+      `Path [${path}] doesn't match yText. Expected a single node with length ${targetLength} at offset ${yOffset}, but got ${
+        targetDelta.length
+      } nodes in ${Scrubber.stringify(inspectYText(yRoot))}.`
+    );
   }
 
   const yTarget = targetDelta[0]?.insert;
@@ -136,7 +141,11 @@ export function yOffsetToSlateOffsets(
   }
 
   if (yOffset > currentOffset) {
-    throw new Error('yOffset out of bounds');
+    throw new Error(
+      `yOffset ${yOffset} out of bounds for Slate node ${Scrubber.stringify(
+        parent
+      )}.`
+    );
   }
 
   const child = parent.children[lastNonEmptyPathOffset];
@@ -146,7 +155,7 @@ export function yOffsetToSlateOffsets(
 
 export function getSlatePath(
   sharedRoot: Y.XmlText,
-  slateRoot: Node,
+  slateRoot: Ancestor,
   yText: Y.XmlText
 ): Path {
   const yNodePath = [yText];
@@ -168,8 +177,11 @@ export function getSlatePath(
     return [];
   }
 
-  let slateParent = slateRoot;
+  let slateParent: Ancestor | null = slateRoot;
+
   return yNodePath.reduce<Path>((path, yParent, idx) => {
+    const isLast = idx === yNodePath.length - 1;
+
     const yChild = yNodePath[idx + 1];
     if (!yChild) {
       return path;
@@ -185,14 +197,25 @@ export function getSlatePath(
       yOffset += typeof element.insert === 'string' ? element.insert.length : 1;
     }
 
-    if (Text.isText(slateParent)) {
-      throw new Error('Cannot descent into slate text');
+    if (!slateParent) {
+      throw new Error('Expected Slate parent');
     }
 
     const [pathOffset] = yOffsetToSlateOffsets(slateParent, yOffset, {
       yParentDelta: currentDelta,
     });
-    slateParent = slateParent.children[pathOffset];
+
+    const child = slateParent.children.at(pathOffset);
+    slateParent = !child || Text.isText(child) ? null : child;
+
+    if (!slateParent && !isLast) {
+      throw new Error(
+        `Could not convert Yjs path to Slate path, since [${path}, ${pathOffset}] resolved to ${
+          child ? 'a text node' : 'undefined'
+        }. Expected ${Scrubber.stringify(inspectYText(yChild))}.`
+      );
+    }
+
     return path.concat(pathOffset);
   }, []);
 }

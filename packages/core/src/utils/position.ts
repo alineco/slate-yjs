@@ -1,9 +1,9 @@
-import { Ancestor, BasePoint, BaseRange, Node, Text } from 'slate';
+import { Ancestor, BasePoint, BaseRange, Node, Scrubber, Text } from 'slate';
 import * as Y from 'yjs';
 import { InsertDelta, RelativeRange, TextRange } from '../model/types';
 import { getInsertDeltaLength, yTextToInsertDelta } from './delta';
 import { getSlatePath, getYTarget, yOffsetToSlateOffsets } from './location';
-import { assertDocumentAttachment } from './yjs';
+import { assertDocumentAttachment, inspectYText } from './yjs';
 import { STORED_POSITION_PREFIX } from './constants';
 
 /**
@@ -33,7 +33,11 @@ export function slatePointToRelativePosition(
 
   if (yTarget) {
     throw new Error(
-      'Slate point points to a non-text element inside sharedRoot'
+      `Slate point ${JSON.stringify(
+        point
+      )} points to a non-text element inside sharedRoot: ${Scrubber.stringify(
+        inspectYText(yTarget)
+      )}.`
     );
   }
 
@@ -59,7 +63,7 @@ export function absolutePositionToSlatePoint(
 
   if (Text.isText(parent)) {
     throw new Error(
-      "Absolute position doesn't match slateRoot, cannot descent into text"
+      `Absolute position doesn't match slateRoot, cannot descent into text at path [${parentPath}]`
     );
   }
 
